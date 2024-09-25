@@ -1,4 +1,6 @@
 using System.Text;
+using KALS.API.Services.Implement;
+using KALS.API.Services.Interface;
 using KALS.Domain.DataAccess;
 using KALS.Repository.Implement;
 using KALS.Repository.Interface;
@@ -31,6 +33,8 @@ public static class DependencyService
     }
     public static IServiceCollection AddServices(this IServiceCollection service, IConfiguration configuration)
     {
+        service.AddScoped<IUserService, UserService>();
+        service.AddScoped<IProductService, ProductService>();
         return service;
     }
 
@@ -47,11 +51,11 @@ public static class DependencyService
                 {
                     options.TokenValidationParameters = new TokenValidationParameters()
                     {
-                        ValidIssuer = "KitAndLabSystem",
+                        ValidIssuer = configuration["JWT:Issuer"],
                         ValidateIssuer = true,
                         ValidateAudience = false,
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("KitAndLabSystemSecretKeyForJWTToken")),
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"]!)),
                     };
                 });
         return service;

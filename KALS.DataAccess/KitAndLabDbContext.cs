@@ -16,6 +16,9 @@ public class KitAndLabDbContext : DbContext
     
     public DbSet<User> User { get; set; }
     public DbSet<Role> Role { get; set; }
+    public DbSet<Product> Product { get; set; }
+    public DbSet<Category> Category { get; set; }
+    public DbSet<ProductRelationship> ProductRelationship { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -23,6 +26,11 @@ public class KitAndLabDbContext : DbContext
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<User>().ToTable("User");
         modelBuilder.Entity<Role>().ToTable("Role");
+        modelBuilder.Entity<Product>().ToTable("Product");
+        modelBuilder.Entity<Category>().ToTable("Category");
+        modelBuilder.Entity<ProductRelationship>().ToTable("ProductRelationship");
+        modelBuilder.Entity<Lab>().ToTable("Lab");
+        modelBuilder.Entity<LabProduct>().ToTable("LabProduct");
     }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

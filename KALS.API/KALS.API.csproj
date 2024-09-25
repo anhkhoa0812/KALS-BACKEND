@@ -26,6 +26,7 @@
         <PackageReference Include="NLog" Version="5.3.4" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
         <ProjectReference Include="..\KALS.Repository\KALS.Repository.csproj" />
+        <ProjectReference Include="..\KALS.DataAccess\KALS.DataAccess.csproj" />
         <ProjectReference Include="..\KALS.Domain\KALS.Domain.csproj" />
     </ItemGroup>
 

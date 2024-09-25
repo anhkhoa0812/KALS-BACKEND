@@ -1,0 +1,16 @@
+using System.ComponentModel.DataAnnotations;
+using KALS.Domain.Common;
+
+namespace KALS.Domain.Entity;
+
+public class Lab: BaseEntity
+{
+    [MaxLength(255)]
+    public string Name { get; set; }
+    [MaxLength(500)]
+    public string Url { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime ModifiedAt { get; set; }
+    
+    public ICollection<LabProduct> LabProducts { get; set; }
+}

@@ -8,6 +8,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Folder Include="Persistent\" />
+    </ItemGroup>
+
+    <ItemGroup>
       <PackageReference Include="AutoMapper" Version="13.0.1" />
       <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.8" />
       <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.8" />
@@ -22,8 +26,7 @@
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
       <PackageReference Include="NLog" Version="5.3.4" />
-      <ProjectReference Include="..\KALS.Domain\KALS.Domain.csproj"/>
-      <ProjectReference Include="..\KALS.DataAccess\KALS.DataAccess.csproj" />
+      <ProjectReference Include="..\KALS.Domain\KALS.Domain.csproj" />
     </ItemGroup>
 
 </Project>

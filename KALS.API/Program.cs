@@ -24,6 +24,7 @@ try
     builder.Services.AddJwtAuthentication();
     builder.Services.AddConfigSwagger();
     builder.Services.AddSwaggerGen();
+    builder.Services.AddHttpContextAccessor();
 
     var app = builder.Build();
 

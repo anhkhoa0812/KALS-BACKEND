@@ -1,0 +1,14 @@
+using System.ComponentModel.DataAnnotations;
+using KALS.Domain.Common;
+
+namespace KALS.Domain.Entity;
+
+public class Category : BaseEntity 
+{
+    [MaxLength(255)]
+    public string Name { get; set; }
+    [MaxLength(1000)]
+    public string? Description { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime ModifiedAt { get; set; }
+}
