@@ -1,8 +1,28 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KALS.API", "KALS.API\KALS.API.csproj", "{A8ED4675-02F7-4264-B7F1-E405BB31D336}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KALS.Domain", "KALS.Domain\KALS.Domain.csproj", "{87AF43C7-6344-4100-9B05-EAC492A1984B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KALS.Repository", "KALS.Repository\KALS.Repository.csproj", "{96D25470-AB09-435D-88E3-3F22D1E875FE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A8ED4675-02F7-4264-B7F1-E405BB31D336}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8ED4675-02F7-4264-B7F1-E405BB31D336}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8ED4675-02F7-4264-B7F1-E405BB31D336}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8ED4675-02F7-4264-B7F1-E405BB31D336}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87AF43C7-6344-4100-9B05-EAC492A1984B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87AF43C7-6344-4100-9B05-EAC492A1984B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87AF43C7-6344-4100-9B05-EAC492A1984B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87AF43C7-6344-4100-9B05-EAC492A1984B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96D25470-AB09-435D-88E3-3F22D1E875FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96D25470-AB09-435D-88E3-3F22D1E875FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96D25470-AB09-435D-88E3-3F22D1E875FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96D25470-AB09-435D-88E3-3F22D1E875FE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
