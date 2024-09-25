@@ -1,5 +1,6 @@
 using KALS.API.Constant;
 using KALS.API.Models.Product;
+using KALS.API.Models.ProductRelationship;
 using KALS.API.Services.Interface;
 using KALS.Domain.Paginate;
 using Microsoft.AspNetCore.Mvc;
@@ -43,6 +44,32 @@ public class ProductController : BaseController<ProductController>
         _logger.LogInformation($"Create new product successful with {request.Name}");
         return CreatedAtAction(nameof(CreateProduct), response);
     }
-    
-    
+    [HttpPatch(ApiEndPointConstant.Product.ProductById)]
+    [ProducesResponseType(typeof(GetProductResponse), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateProductById(Guid id, [FromBody] UpdateProductRequest request)
+    {
+        var response = await _productService.UpdateProductByIdAsync(id, request);
+        if (response == null)
+        {
+            _logger.LogError($"Update product failed with {id}");
+            return Problem($"{MessageConstant.Product.UpdateProductFail}: {id}");
+        }
+        _logger.LogInformation($"Update product successful with {id}");
+        return Ok(response);
+    }
+    [HttpPatch(ApiEndPointConstant.Product.UpdateProductRelationship)]
+    [ProducesResponseType(typeof(GetProductResponse), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateProductRelationshipByProductId(Guid id, [FromBody] UpdateProductRelationshipRequest request)
+    {
+        var response = await _productService.UpdateProductRelationshipByProductIdAsync(id, request);
+        if (response == null)
+        {
+            _logger.LogError($"Update product relationship failed with {id}");
+            return Problem($"{MessageConstant.Product.UpdateProductRelationshipFail}: {id}");
+        }
+        _logger.LogInformation($"Update product relationship successful with {id}");
+        return Ok(response);
+    }
 }

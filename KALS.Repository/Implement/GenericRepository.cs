@@ -97,6 +97,13 @@ public class GenericRepository<T>: IGenericRepository<T>, IAsyncDisposable where
         if(entities == null) return;
         _dbSet.UpdateRange(entities);
     }
+
+    public void DeleteAsync(T entity)
+    {
+        if(entity == null) return;
+        _dbSet.Remove(entity);
+    }
+
     #endregion
     
 }

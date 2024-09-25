@@ -38,4 +38,6 @@ public interface IGenericRepository<T>: IDisposable where T : class
     void UpdateAsync(T entity);
     void UpdateRangeAsync(IEnumerable<T> entities);
     
+    void DeleteAsync(T entity);
+    
 }

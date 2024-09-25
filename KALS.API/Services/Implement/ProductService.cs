@@ -1,6 +1,7 @@
 using AutoMapper;
 using KALS.API.Constant;
 using KALS.API.Models.Product;
+using KALS.API.Models.ProductRelationship;
 using KALS.API.Services.Interface;
 using KALS.API.Utils;
 using KALS.Domain.DataAccess;
@@ -98,6 +99,79 @@ public class ProductService: BaseService<ProductService>, IProductService
         bool isSuccess = await _unitOfWork.CommitAsync() > 0;
         GetProductResponse productResponse = null;
         if (isSuccess) productResponse = _mapper.Map<GetProductResponse>(product);
+        return productResponse;
+    }
+
+    public async Task<GetProductResponse> UpdateProductByIdAsync(Guid id, UpdateProductRequest request)
+    {
+        if(id == Guid.Empty) throw new BadHttpRequestException(MessageConstant.Product.ProductIdNotNull);
+        var product = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
+            predicate: p => p.Id == id
+        );
+        if(product == null) throw new BadHttpRequestException(MessageConstant.Product.ProductNotFound);
+        product.Name = request.Name;
+        product.Description = request.Description;
+        product.Price = request.Price;
+        product.Quantity = request.Quantity;
+        product.IsHidden = request.IsHidden;
+        product.Type = request.Type;
+        product.ModifiedAt = TimeUtil.GetCurrentSEATime();
+        _unitOfWork.GetRepository<Product>().UpdateAsync(product);
+        bool isSuccess = await _unitOfWork.CommitAsync() > 0;
+        GetProductResponse productResponse = null;
+        if (isSuccess) productResponse = _mapper.Map<GetProductResponse>(product);
+        return productResponse;
+    }
+
+    public async Task<GetProductResponse> UpdateProductRelationshipByProductIdAsync(Guid parentId, UpdateProductRelationshipRequest request)
+    {
+        if(parentId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.Product.ProductIdNotNull);
+        var parentProduct = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
+            predicate: p => p.Id == parentId,
+            include: p => p.Include(p => p.ChildProducts)
+                .ThenInclude(pr => pr.ChildProduct)
+        );
+        if(parentId == null) throw new BadHttpRequestException(MessageConstant.Product.ProductNotFound);
+        
+        var currentChildProductIds = parentProduct.ChildProducts.Select(cp => cp.ChildProductId).ToList();
+        var newChildProductIds = request.ChildProductIds.Except(currentChildProductIds).ToList();
+        var removeChildProductIds = currentChildProductIds.Except(request.ChildProductIds).ToList();
+        
+        if (removeChildProductIds.Any())
+        {
+            var relationshipsToRemove = parentProduct.ChildProducts
+                .Where(pr => removeChildProductIds.Contains(pr.ChildProductId))
+                .ToList();
+
+            foreach (var relationship in relationshipsToRemove)
+            {
+                _unitOfWork.GetRepository<ProductRelationship>().DeleteAsync(relationship);
+            }
+            
+        }
+        if (newChildProductIds.Any())
+        {
+            foreach (var newChildProductId in newChildProductIds)
+            {
+                var newChildProduct = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
+                    predicate: p => p.Id == newChildProductId
+                );
+                if(newChildProduct != null)
+                {
+                    _unitOfWork.GetRepository<ProductRelationship>().InsertAsync(
+                        new ProductRelationship()
+                        {
+                            ParentProductId = parentId,
+                            ChildProductId = newChildProductId
+                        }
+                    );
+                }
+            }
+        }
+        
+        bool isSuccess = await _unitOfWork.CommitAsync() > 0;
+        GetProductResponse productResponse = null;
+        if (isSuccess) productResponse = _mapper.Map<GetProductResponse>(parentProduct);
         return productResponse;
     }
 }

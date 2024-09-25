@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KALS.DataAccess.Migrations
 {
     [DbContext(typeof(KitAndLabDbContext))]
-    [Migration("20240925162325_Initial")]
-    partial class Initial
+    [Migration("20240925232020_2")]
+    partial class _2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -51,13 +51,55 @@ namespace KALS.DataAccess.Migrations
                     b.ToTable("Category", (string)null);
                 });
 
+            modelBuilder.Entity("KALS.Domain.Entity.Lab", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Lab", (string)null);
+                });
+
+            modelBuilder.Entity("KALS.Domain.Entity.LabProduct", b =>
+                {
+                    b.Property<Guid>("LabId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("LabId", "ProductId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("LabProduct", (string)null);
+                });
+
             modelBuilder.Entity("KALS.Domain.Entity.Product", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("CategoryId")
+                    b.Property<Guid?>("CategoryId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
@@ -159,13 +201,30 @@ namespace KALS.DataAccess.Migrations
                     b.ToTable("User", (string)null);
                 });
 
+            modelBuilder.Entity("KALS.Domain.Entity.LabProduct", b =>
+                {
+                    b.HasOne("KALS.Domain.Entity.Lab", "Lab")
+                        .WithMany("LabProducts")
+                        .HasForeignKey("LabId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("KALS.Domain.Entity.Product", "Product")
+                        .WithMany("LabProducts")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Lab");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("KALS.Domain.Entity.Product", b =>
                 {
                     b.HasOne("KALS.Domain.Entity.Category", "Category")
                         .WithMany()
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CategoryId");
 
                     b.Navigation("Category");
                 });
@@ -200,9 +259,16 @@ namespace KALS.DataAccess.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("KALS.Domain.Entity.Lab", b =>
+                {
+                    b.Navigation("LabProducts");
+                });
+
             modelBuilder.Entity("KALS.Domain.Entity.Product", b =>
                 {
                     b.Navigation("ChildProducts");
+
+                    b.Navigation("LabProducts");
 
                     b.Navigation("ParentProducts");
                 });

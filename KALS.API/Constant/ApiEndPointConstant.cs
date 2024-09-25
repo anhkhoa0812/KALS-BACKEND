@@ -18,5 +18,6 @@ public class ApiEndPointConstant
     {
         public const string ProductEndpoint = ApiEndpoint + "/product";
         public const string ProductById = ProductEndpoint + "/{id}";
+        public const string UpdateProductRelationship = ProductById + "/product-relationship";
     }
 }

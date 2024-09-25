@@ -27,6 +27,21 @@ namespace KALS.DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Lab",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ModifiedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Lab", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Role",
                 columns: table => new
                 {
@@ -87,6 +102,30 @@ namespace KALS.DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "LabProduct",
+                columns: table => new
+                {
+                    LabId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LabProduct", x => new { x.LabId, x.ProductId });
+                    table.ForeignKey(
+                        name: "FK_LabProduct_Lab_LabId",
+                        column: x => x.LabId,
+                        principalTable: "Lab",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_LabProduct_Product_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Product",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ProductRelationship",
                 columns: table => new
                 {
@@ -111,6 +150,11 @@ namespace KALS.DataAccess.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_LabProduct_ProductId",
+                table: "LabProduct",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Product_CategoryId",
                 table: "Product",
                 column: "CategoryId");
@@ -130,10 +174,16 @@ namespace KALS.DataAccess.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "LabProduct");
+
+            migrationBuilder.DropTable(
                 name: "ProductRelationship");
 
             migrationBuilder.DropTable(
                 name: "User");
+
+            migrationBuilder.DropTable(
+                name: "Lab");
 
             migrationBuilder.DropTable(
                 name: "Product");
