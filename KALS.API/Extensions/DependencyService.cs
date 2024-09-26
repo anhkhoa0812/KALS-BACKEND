@@ -35,6 +35,8 @@ public static class DependencyService
     {
         service.AddScoped<IUserService, UserService>();
         service.AddScoped<IProductService, ProductService>();
+        service.AddScoped<ILabService, LabService>();
+        service.AddScoped<ICategoryService, CategoryService>();
         return service;
     }
 

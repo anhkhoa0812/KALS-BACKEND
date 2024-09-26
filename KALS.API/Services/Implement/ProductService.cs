@@ -33,18 +33,20 @@ public class ProductService: BaseService<ProductService>, IProductService
                 IsHidden = p.IsHidden,
                 Type = p.Type,
             },
-            predicate: p => !p.IsHidden && (!categoryId.HasValue || p.CategoryId == categoryId),
+            predicate: p => !p.IsHidden && (!categoryId.HasValue || p.ProductCategories.Where(pc => pc.CategoryId == categoryId).Any()),
             orderBy: p => p.OrderByDescending(p => p.CreatedAt),
             page: page,
-            size: size
+            size: size,
+            include: p => p.Include(p => p.ProductCategories)
+                .ThenInclude(pc => pc.Category)
         );
         return products;
     }
 
-    public Task<GetProductDetailResponse> GetProductByIdAsync(Guid id)
+    public async Task<GetProductDetailResponse> GetProductByIdAsync(Guid id)
     {
         if(id == Guid.Empty) throw new BadHttpRequestException("Id is invalid");
-        var product = _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
+        var product = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
             selector: p => new GetProductDetailResponse()
             {
                 Id = p.Id,
@@ -82,18 +84,37 @@ public class ProductService: BaseService<ProductService>, IProductService
         product.Id = Guid.NewGuid();
         product.CreatedAt = TimeUtil.GetCurrentSEATime();
         product.ModifiedAt = TimeUtil.GetCurrentSEATime();
-
-        foreach (var childProductId in request.ChildProductIds)
+        if (request.ChildProductIds.Any())
         {
-            var childProduct = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
-                predicate: p => p.Id == childProductId
-                );
-            if (childProduct == null) throw new BadHttpRequestException(MessageConstant.Product.ChildProductNotFound);
-            product.ChildProducts.Add(new ProductRelationship()
+            foreach (var childProductId in request.ChildProductIds)
             {
-                ParentProductId = product.Id,
-                ChildProductId = childProductId
-            });
+                var childProduct = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
+                    predicate: p => p.Id == childProductId
+                );
+                if (childProduct == null) throw new BadHttpRequestException(MessageConstant.Product.ChildProductNotFound);
+                product.ChildProducts.Add(new ProductRelationship()
+                {
+                    ParentProductId = product.Id,
+                    ChildProductId = childProductId
+                });
+            
+            }
+        }
+
+        if (request.CategoryIds.Any())
+        {
+            foreach (var categoryId in request.CategoryIds)
+            {
+                var category = await _unitOfWork.GetRepository<Category>().SingleOrDefaultAsync(
+                    predicate: c => c.Id == categoryId
+                );
+                if (category == null) throw new BadHttpRequestException(MessageConstant.Category.CategoryNotFound);
+                product.ProductCategories.Add(new ProductCategory()
+                {
+                    ProductId = product.Id,
+                    CategoryId = categoryId
+                });
+            }
         }
         await _unitOfWork.GetRepository<Product>().InsertAsync(product);
         bool isSuccess = await _unitOfWork.CommitAsync() > 0;

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace KALS.DataAccess.Migrations
+namespace KALS.DataAccess.Persistent.Migrations
 {
     [DbContext(typeof(KitAndLabDbContext))]
     partial class KitAndLabDbContextModelSnapshot : ModelSnapshot
@@ -90,13 +90,106 @@ namespace KALS.DataAccess.Migrations
                     b.ToTable("LabProduct", (string)null);
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.Product", b =>
+            modelBuilder.Entity("KALS.Domain.Entity.Member", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("CategoryId")
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("District")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Province")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Ward")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Member", (string)null);
+                });
+
+            modelBuilder.Entity("KALS.Domain.Entity.Order", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CreatedAt")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("MemberId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ModifiedAt")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MemberId");
+
+                    b.ToTable("Order", (string)null);
+                });
+
+            modelBuilder.Entity("KALS.Domain.Entity.Payment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("PaymentDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TransactionId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Payment", (string)null);
+                });
+
+            modelBuilder.Entity("KALS.Domain.Entity.Product", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
@@ -127,9 +220,22 @@ namespace KALS.DataAccess.Migrations
 
                     b.HasKey("Id");
 
+                    b.ToTable("Product", (string)null);
+                });
+
+            modelBuilder.Entity("KALS.Domain.Entity.ProductCategory", b =>
+                {
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("ProductId", "CategoryId");
+
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Product", (string)null);
+                    b.ToTable("ProductCategory", (string)null);
                 });
 
             modelBuilder.Entity("KALS.Domain.Entity.ProductRelationship", b =>
@@ -217,13 +323,56 @@ namespace KALS.DataAccess.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.Product", b =>
+            modelBuilder.Entity("KALS.Domain.Entity.Member", b =>
+                {
+                    b.HasOne("KALS.Domain.Entity.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("KALS.Domain.Entity.Order", b =>
+                {
+                    b.HasOne("KALS.Domain.Entity.Member", "Member")
+                        .WithMany()
+                        .HasForeignKey("MemberId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Member");
+                });
+
+            modelBuilder.Entity("KALS.Domain.Entity.Payment", b =>
+                {
+                    b.HasOne("KALS.Domain.Entity.Order", "Order")
+                        .WithOne("Payment")
+                        .HasForeignKey("KALS.Domain.Entity.Payment", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("KALS.Domain.Entity.ProductCategory", b =>
                 {
                     b.HasOne("KALS.Domain.Entity.Category", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryId");
+                        .WithMany("ProductCategories")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("KALS.Domain.Entity.Product", "Product")
+                        .WithMany("ProductCategories")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Category");
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("KALS.Domain.Entity.ProductRelationship", b =>
@@ -256,9 +405,20 @@ namespace KALS.DataAccess.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("KALS.Domain.Entity.Category", b =>
+                {
+                    b.Navigation("ProductCategories");
+                });
+
             modelBuilder.Entity("KALS.Domain.Entity.Lab", b =>
                 {
                     b.Navigation("LabProducts");
+                });
+
+            modelBuilder.Entity("KALS.Domain.Entity.Order", b =>
+                {
+                    b.Navigation("Payment")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("KALS.Domain.Entity.Product", b =>
@@ -268,6 +428,8 @@ namespace KALS.DataAccess.Migrations
                     b.Navigation("LabProducts");
 
                     b.Navigation("ParentProducts");
+
+                    b.Navigation("ProductCategories");
                 });
 #pragma warning restore 612, 618
         }

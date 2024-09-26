@@ -12,5 +12,5 @@ public class Lab: BaseEntity
     public DateTime CreatedAt { get; set; }
     public DateTime ModifiedAt { get; set; }
     
-    public ICollection<LabProduct> LabProducts { get; set; }
+    public virtual ICollection<LabProduct>? LabProducts { get; set; }
 }

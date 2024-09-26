@@ -1,3 +1,4 @@
+using System.Collections;
 using System.ComponentModel.DataAnnotations;
 using KALS.Domain.Common;
 
@@ -11,4 +12,6 @@ public class Category : BaseEntity
     public string? Description { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime ModifiedAt { get; set; }
+    
+    public virtual ICollection<ProductCategory>? ProductCategories { get; set; }
 }

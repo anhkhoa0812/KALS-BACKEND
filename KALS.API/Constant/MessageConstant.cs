@@ -22,4 +22,13 @@ public class MessageConstant
         public const string AssignLabToProductFail = "Gán lab cho sản phẩm không thành công";
         public const string LabIdNotNull = "Id lab không được để trống";
     }
+
+    public static class Category
+    {
+        public const string  CategoryIdNotNull = "Id danh mục không được để trống";
+        public const string CategoryNotFound = "Danh mục không tồn tại";
+        public const string UpdateProductCategoryFail = "Cập nhật danh mục của sản phẩm không thành công";
+        public const string UpdateCategoryFail = "Cập nhật danh mục không thành công";
+        public const string CreateCategoryFail = "Tạo danh mục không thành công";
+    }
 }

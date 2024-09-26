@@ -27,4 +27,11 @@ public class ApiEndPointConstant
         public const string LabEndPoint = ApiEndpoint + "/lab";
         public const string LabById = LabEndPoint + "/{id}";
     }
+
+    public class Category
+    {
+        public const string CategoryEndPoint = ApiEndpoint + "/category";
+        public const string CategoryById = CategoryEndPoint + "/{id}";
+        public const string UpdateProductCategory = CategoryById + "/product-category";
+    }
 }

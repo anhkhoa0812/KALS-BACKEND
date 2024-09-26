@@ -14,5 +14,4 @@ public interface IProductService
     Task<GetProductResponse> UpdateProductRelationshipByProductIdAsync(Guid parentId, UpdateProductRelationshipRequest request);
     
     
-    
 }

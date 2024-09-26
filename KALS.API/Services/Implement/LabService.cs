@@ -65,9 +65,9 @@ public class LabService: BaseService<LabService>, ILabService
         return response;
     }
 
-    public Task<IPaginate<LabResponse>> GetLabsAsync(int page, int size, string? searchName)
+    public async Task<IPaginate<LabResponse>> GetLabsAsync(int page, int size, string? searchName)
     {
-        var labs = _unitOfWork.GetRepository<Lab>().GetPagingListAsync(
+        var labs = await _unitOfWork.GetRepository<Lab>().GetPagingListAsync(
             selector: l => new LabResponse()
             {
                 Id = l.Id,
@@ -84,10 +84,10 @@ public class LabService: BaseService<LabService>, ILabService
         return labs;
     }
 
-    public Task<LabResponse> GetLabByIdAsync(Guid labId)
+    public async Task<LabResponse> GetLabByIdAsync(Guid labId)
     {
         if(labId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.Lab.LabIdNotNull);
-        var lab = _unitOfWork.GetRepository<Lab>().SingleOrDefaultAsync(
+        var lab =  await _unitOfWork.GetRepository<Lab>().SingleOrDefaultAsync(
             selector: l => new LabResponse()
             {
                 Id = l.Id,

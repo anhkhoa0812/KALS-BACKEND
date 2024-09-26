@@ -1,0 +1,77 @@
+using KALS.API.Constant;
+using KALS.API.Models.Category;
+using KALS.API.Services.Interface;
+using KALS.Domain.Paginate;
+using Microsoft.AspNetCore.Mvc;
+
+namespace KALS.API.Controller;
+
+[ApiController]
+[Route(ApiEndPointConstant.Category.CategoryEndPoint)]
+public class CategoryController: BaseController<CategoryController>
+{
+    private readonly ICategoryService _categoryService;
+    public CategoryController(ILogger<CategoryController> logger, ICategoryService categoryService) : base(logger)
+    {
+        _categoryService = categoryService;
+    }
+    
+    [HttpGet(ApiEndPointConstant.Category.CategoryEndPoint)]
+    [ProducesResponseType(typeof(IPaginate<CategoryResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCategoriesPagingAsync(int page = 1, int size = 30)
+    {
+        var categories = await _categoryService.GetCategoriesPagingAsync(page, size);
+        return Ok(categories);
+    }
+    [HttpGet(ApiEndPointConstant.Category.CategoryById)]
+    [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCategoryByIdAsync(Guid id)
+    {
+        var category = await _categoryService.GetCategoryByIdAsync(id);
+        return Ok(category);
+    }
+    [HttpPatch(ApiEndPointConstant.Category.UpdateProductCategory)]
+    [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateProductCategoryByCategoryIdAsync(Guid categoryId, [FromBody] UpdateProductCategoryRequest request)
+    {
+        var response = await _categoryService.UpdateProductCategoryByCategoryIdAsync(categoryId, request);
+        if (response == null)
+        {
+            _logger.LogError($"Update product category failed with {categoryId}");
+            return Problem($"{MessageConstant.Category.UpdateProductCategoryFail}: {categoryId}");
+        }
+        _logger.LogInformation($"Update product category successful with {categoryId}");
+        return Ok(response);
+    }
+
+    [HttpPatch(ApiEndPointConstant.Category.CategoryById)]
+    [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateCategoryAsync(Guid categoryId, [FromBody] UpdateCategoryRequest request)
+    {
+        var response = await _categoryService.UpdateCategoryAsync(categoryId, request);
+        if (response == null)
+        {
+            _logger.LogError($"Update category failed with {categoryId}");
+            return Problem($"{MessageConstant.Category.UpdateCategoryFail}: {categoryId}");
+        }
+
+        _logger.LogInformation($"Update category successful with {categoryId}");
+        return Ok(response);
+    }
+    [HttpPost(ApiEndPointConstant.Category.CategoryEndPoint)]
+    [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryRequest request)
+    {
+        var response = await _categoryService.CreateCategoryAsync(request);
+        if (response == null)
+        {
+            _logger.LogError($"Create new category failed with {request.Name}");
+            return Problem($"{MessageConstant.Category.CreateCategoryFail}: {request.Name}");
+        }
+        _logger.LogInformation($"Create new category successful with {request.Name}");
+        return CreatedAtAction(nameof(CreateCategory), response);
+    }
+}
