@@ -17,4 +17,9 @@ public class MessageConstant
         public const string UpdateProductFail = "Cập nhật sản phẩm không thành công";
         public const string UpdateProductRelationshipFail = "Cập nhật quan hệ sản phẩm không thành công";
     }
+    public static class Lab
+    {
+        public const string AssignLabToProductFail = "Gán lab cho sản phẩm không thành công";
+        public const string LabIdNotNull = "Id lab không được để trống";
+    }
 }
