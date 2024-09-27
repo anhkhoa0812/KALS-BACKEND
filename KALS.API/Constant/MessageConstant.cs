@@ -16,6 +16,8 @@ public class MessageConstant
         public const string ProductNotFound = "Sản phẩm không tồn tại";
         public const string UpdateProductFail = "Cập nhật sản phẩm không thành công";
         public const string UpdateProductRelationshipFail = "Cập nhật quan hệ sản phẩm không thành công";
+        public const string ParentProductIdNotNull = "Id của sản phẩm kit không được để trống";
+        public const string ChildProductIdNotNull = "Id của sản phẩm con không được để trống";
     }
     public static class Lab
     {

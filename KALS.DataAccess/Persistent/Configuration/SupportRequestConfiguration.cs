@@ -1,0 +1,27 @@
+using KALS.Domain.Entity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace KALS.DataAccess.Persistent.Configuration;
+
+public class SupportRequestConfiguration: IEntityTypeConfiguration<SupportRequest>
+{
+    public void Configure(EntityTypeBuilder<SupportRequest> builder)
+    {
+        builder
+            .HasOne(sr => sr.Member)
+            .WithMany()
+            .HasForeignKey(sr => sr.MemberId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder
+            .HasOne(sr => sr.Staff)
+            .WithMany()
+            .HasForeignKey(sr => sr.StaffId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder
+            .HasOne(sr => sr.Lab)
+            .WithMany()
+            .HasForeignKey(sr => sr.LabId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}

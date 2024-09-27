@@ -1,10 +1,10 @@
 using AutoMapper;
 using KALS.API.Constant;
 using KALS.API.Models.Product;
-using KALS.API.Models.ProductRelationship;
 using KALS.API.Services.Interface;
 using KALS.API.Utils;
 using KALS.Domain.DataAccess;
+using KALS.Domain.Entities;
 using KALS.Domain.Entity;
 using KALS.Domain.Paginate;
 using KALS.Repository.Interface;
@@ -31,7 +31,7 @@ public class ProductService: BaseService<ProductService>, IProductService
                 CreatedAt = p.CreatedAt,
                 ModifiedAt = p.ModifiedAt,
                 IsHidden = p.IsHidden,
-                Type = p.Type,
+                IsKit = p.IsKit
             },
             predicate: p => !p.IsHidden && (!categoryId.HasValue || p.ProductCategories.Where(pc => pc.CategoryId == categoryId).Any()),
             orderBy: p => p.OrderByDescending(p => p.CreatedAt),
@@ -57,19 +57,19 @@ public class ProductService: BaseService<ProductService>, IProductService
                 CreatedAt = p.CreatedAt,
                 ModifiedAt = p.ModifiedAt,
                 IsHidden = p.IsHidden,
-                Type = p.Type,
-                ChildProducts = p.ChildProducts.Select(cp => new GetProductResponse()
+                IsKit = p.IsKit,
+                ChildProducts = p.ChildProducts.Select(pr => pr.ChildProduct).Select(cp => new GetProductResponse()
                 {
-                    Id = cp.ChildProduct.Id,
-                    Name = cp.ChildProduct.Name,
-                    Description = cp.ChildProduct.Description,
-                    Price = cp.ChildProduct.Price,
-                    Quantity = cp.ChildProduct.Quantity,
-                    CreatedAt = cp.ChildProduct.CreatedAt,
-                    ModifiedAt = cp.ChildProduct.ModifiedAt,
-                    IsHidden = cp.ChildProduct.IsHidden,
-                    Type = cp.ChildProduct.Type,
-                }).ToList(),
+                    Id = cp.Id,
+                    Name = cp.Name,
+                    Description = cp.Description,
+                    Quantity = cp.Quantity,
+                    Price = cp.Price,
+                    IsHidden = cp.IsHidden,
+                    IsKit = cp.IsKit,
+                    CreatedAt = cp.CreatedAt,
+                    ModifiedAt = cp.ModifiedAt
+                }).ToList()
             },
             predicate: p => p.Id == id,
             include: p => p.Include(p => p.ChildProducts)
@@ -88,16 +88,20 @@ public class ProductService: BaseService<ProductService>, IProductService
         {
             foreach (var childProductId in request.ChildProductIds)
             {
-                var childProduct = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
+                var requestedChildProduct = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
                     predicate: p => p.Id == childProductId
                 );
-                if (childProduct == null) throw new BadHttpRequestException(MessageConstant.Product.ChildProductNotFound);
-                product.ChildProducts.Add(new ProductRelationship()
+                if (requestedChildProduct == null) throw new BadHttpRequestException(MessageConstant.Product.ChildProductNotFound);
+                // product.ChildProducts.Add(new ProductRelationship()
+                // {
+                //     ParentProductId = product.Id,
+                //     ChildProductId = childProductId
+                // });
+                await _unitOfWork.GetRepository<ProductRelationship>().InsertAsync(new ProductRelationship()
                 {
                     ParentProductId = product.Id,
                     ChildProductId = childProductId
                 });
-            
             }
         }
 
@@ -109,11 +113,18 @@ public class ProductService: BaseService<ProductService>, IProductService
                     predicate: c => c.Id == categoryId
                 );
                 if (category == null) throw new BadHttpRequestException(MessageConstant.Category.CategoryNotFound);
-                product.ProductCategories.Add(new ProductCategory()
-                {
-                    ProductId = product.Id,
-                    CategoryId = categoryId
-                });
+                // product.ProductCategories.Add(new ProductCategory()
+                // {
+                //     ProductId = product.Id,
+                //     CategoryId = categoryId
+                // });
+                await _unitOfWork.GetRepository<ProductCategory>().InsertAsync(
+                    new ProductCategory()
+                    {
+                        ProductId = product.Id,
+                        CategoryId = categoryId
+                    }
+                );
             }
         }
         await _unitOfWork.GetRepository<Product>().InsertAsync(product);
@@ -135,7 +146,7 @@ public class ProductService: BaseService<ProductService>, IProductService
         product.Price = request.Price;
         product.Quantity = request.Quantity;
         product.IsHidden = request.IsHidden;
-        product.Type = request.Type;
+        product.IsHidden = request.IsHidden;
         product.ModifiedAt = TimeUtil.GetCurrentSEATime();
         _unitOfWork.GetRepository<Product>().UpdateAsync(product);
         bool isSuccess = await _unitOfWork.CommitAsync() > 0;
@@ -144,55 +155,68 @@ public class ProductService: BaseService<ProductService>, IProductService
         return productResponse;
     }
 
-    public async Task<GetProductResponse> UpdateProductRelationshipByProductIdAsync(Guid parentId, UpdateProductRelationshipRequest request)
+    public async Task<GetProductResponse> UpdateProductRelationshipByProductIdAsync(Guid parentId, UpdateChildProductForKitRequest request)
     {
         if(parentId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.Product.ProductIdNotNull);
+        if (!request.ChildProductIds.Any())
+            throw new BadHttpRequestException(MessageConstant.Product.ChildProductIdNotNull);
         var parentProduct = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
             predicate: p => p.Id == parentId,
             include: p => p.Include(p => p.ChildProducts)
                 .ThenInclude(pr => pr.ChildProduct)
         );
-        if(parentId == null) throw new BadHttpRequestException(MessageConstant.Product.ProductNotFound);
-        
-        var currentChildProductIds = parentProduct.ChildProducts.Select(cp => cp.ChildProductId).ToList();
-        var newChildProductIds = request.ChildProductIds.Except(currentChildProductIds).ToList();
-        var removeChildProductIds = currentChildProductIds.Except(request.ChildProductIds).ToList();
-        
-        if (removeChildProductIds.Any())
-        {
-            var relationshipsToRemove = parentProduct.ChildProducts
-                .Where(pr => removeChildProductIds.Contains(pr.ChildProductId))
-                .ToList();
+        if(parentProduct == null) throw new BadHttpRequestException(MessageConstant.Product.ProductNotFound);
 
-            foreach (var relationship in relationshipsToRemove)
-            {
-                _unitOfWork.GetRepository<ProductRelationship>().DeleteAsync(relationship);
-            }
-            
-        }
-        if (newChildProductIds.Any())
+        var currentChildProductIds = parentProduct.ChildProducts.Select(pr => pr.ChildProductId).ToList();
+        var addChildProductIds = request.ChildProductIds.Except(currentChildProductIds);
+        var removeChildProductIds = currentChildProductIds.Except(request.ChildProductIds);
+
+        if (addChildProductIds.Any())
         {
-            foreach (var newChildProductId in newChildProductIds)
+            foreach (var addChildProductId in addChildProductIds)
             {
-                var newChildProduct = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
-                    predicate: p => p.Id == newChildProductId
+                var addChildProduct = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
+                    predicate: acp => acp.Id == addChildProductId
                 );
-                if(newChildProduct != null)
+                if (addChildProduct != null)
                 {
-                    _unitOfWork.GetRepository<ProductRelationship>().InsertAsync(
+                    await _unitOfWork.GetRepository<ProductRelationship>().InsertAsync(
                         new ProductRelationship()
                         {
                             ParentProductId = parentId,
-                            ChildProductId = newChildProductId
+                            ChildProductId = addChildProductId
                         }
                     );
                 }
             }
         }
-        
+
+        if (removeChildProductIds.Any())
+        {
+            foreach (var removeChildProductId in removeChildProductIds)
+            {
+                var removeChildProduct = parentProduct.ChildProducts.FirstOrDefault(pr => pr.ChildProductId == removeChildProductId);
+                if (removeChildProduct != null)
+                {
+                    _unitOfWork.GetRepository<ProductRelationship>().DeleteAsync(removeChildProduct);
+                }
+            }
+        }
+
+        // _unitOfWork.GetRepository<Product>().UpdateAsync(parentProduct);
         bool isSuccess = await _unitOfWork.CommitAsync() > 0;
         GetProductResponse productResponse = null;
         if (isSuccess) productResponse = _mapper.Map<GetProductResponse>(parentProduct);
         return productResponse;
+    }
+
+    public async Task<ICollection<GetProductResponse>> GetChildProductsByParentIdAsync(Guid parentId)
+    {
+        if(parentId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.Product.ParentProductIdNotNull);
+        var childProducts = await _unitOfWork.GetRepository<Product>().GetListAsync(
+            predicate: p => p.ChildProducts.Any(cp => cp.ParentProductId == parentId)
+        );
+        var childProductResponses = _mapper.Map<ICollection<GetProductResponse>>(childProducts);
+        return childProductResponses;
     }
 }

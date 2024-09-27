@@ -7,6 +7,7 @@ using KALS.Domain.DataAccess;
 using KALS.Domain.Entity;
 using KALS.Domain.Paginate;
 using KALS.Repository.Interface;
+using Microsoft.EntityFrameworkCore;
 
 namespace KALS.API.Services.Implement;
 
@@ -55,12 +56,17 @@ public class CategoryService: BaseService<CategoryService>, ICategoryService
     {
         if(categoryId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.Category.CategoryIdNotNull);
         var category = await _unitOfWork.GetRepository<Category>().SingleOrDefaultAsync(
-            predicate: c => c.Id == categoryId
+            predicate: c => c.Id == categoryId,
+            include: c => c.Include(c => c.ProductCategories)
+                .ThenInclude(pc => pc.Product)
         );
         if (category == null) throw new BadHttpRequestException(MessageConstant.Category.CategoryNotFound);
         
-        var newProductIds = request.ProductIds.Except(category.ProductCategories.Select(pc => pc.ProductId)).ToList();
-        var removeProductIds = category.ProductCategories.Select(pc => pc.ProductId).Except(request.ProductIds).ToList();
+        var currentProductIds = category.ProductCategories
+            .Select(pc => pc.ProductId)
+            .ToList();
+        var newProductIds = request.ProductIds.Except(currentProductIds).ToList();
+        var removeProductIds = currentProductIds.Except(request.ProductIds).ToList();
 
         if (removeProductIds.Any())
         {
@@ -75,12 +81,12 @@ public class CategoryService: BaseService<CategoryService>, ICategoryService
         {
             foreach (var newProductId in newProductIds)
             {
-                var newProduct = _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
+                var newProduct = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
                     predicate: p => p.Id == newProductId
                 );
                 if (newProduct != null)
                 {
-                    _unitOfWork.GetRepository<ProductCategory>().InsertAsync(new ProductCategory()
+                    await _unitOfWork.GetRepository<ProductCategory>().InsertAsync(new ProductCategory()
                     {
                         ProductId = newProductId,
                         CategoryId = categoryId

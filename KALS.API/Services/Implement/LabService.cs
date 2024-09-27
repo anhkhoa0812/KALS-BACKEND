@@ -40,7 +40,6 @@ public class LabService: BaseService<LabService>, ILabService
                 _unitOfWork.GetRepository<LabProduct>().DeleteAsync(removeLabProduct);
             }
         }
-
         if (newLabIds.Any())
         {
             foreach (var newLabId in newLabIds)
@@ -76,7 +75,7 @@ public class LabService: BaseService<LabService>, ILabService
                 CreatedAt = l.CreatedAt,
                 ModifiedAt = l.ModifiedAt
             },
-            predicate: l => (!searchName.IsNullOrEmpty() || l.Name.Contains(searchName!)),
+            predicate: l => (searchName.IsNullOrEmpty() || l.Name.Contains(searchName!)),
             page: page,
             size: size,
             orderBy: l => l.OrderByDescending(l => l.CreatedAt)
@@ -117,8 +116,8 @@ public class LabService: BaseService<LabService>, ILabService
                 Price = p.Price,
                 CreatedAt = p.CreatedAt,
                 ModifiedAt = p.ModifiedAt,
-                Type = p.Type,
                 IsHidden = p.IsHidden,
+                
                 Labs = p.LabProducts
                     .Where(lp => lp.ProductId == productId)
                     .Select(lp => lp.Lab).Select(l => new LabResponse()

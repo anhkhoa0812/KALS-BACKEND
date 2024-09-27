@@ -4,6 +4,7 @@ using KALS.Domain.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KALS.DataAccess.Persistent.Migrations
 {
     [DbContext(typeof(KitAndLabDbContext))]
-    partial class KitAndLabDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240926173035_2")]
+    partial class _2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,21 +24,6 @@ namespace KALS.DataAccess.Persistent.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("KALS.Domain.Entities.ProductRelationship", b =>
-                {
-                    b.Property<Guid>("ParentProductId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ChildProductId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("ParentProductId", "ChildProductId");
-
-                    b.HasIndex("ChildProductId");
-
-                    b.ToTable("ProductRelationship");
-                });
 
             modelBuilder.Entity("KALS.Domain.Entity.Category", b =>
                 {
@@ -246,9 +234,6 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.Property<bool>("IsHidden")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsKit")
-                        .HasColumnType("bit");
-
                     b.Property<DateTime>("ModifiedAt")
                         .HasColumnType("datetime2");
 
@@ -261,6 +246,10 @@ namespace KALS.DataAccess.Persistent.Migrations
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -280,6 +269,21 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("ProductCategory", (string)null);
+                });
+
+            modelBuilder.Entity("KALS.Domain.Entity.ProductRelationship", b =>
+                {
+                    b.Property<Guid>("ParentProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ChildProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("ParentProductId", "ChildProductId");
+
+                    b.HasIndex("ChildProductId");
+
+                    b.ToTable("ProductRelationship", (string)null);
                 });
 
             modelBuilder.Entity("KALS.Domain.Entity.Role", b =>
@@ -423,25 +427,6 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.ToTable("User", (string)null);
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entities.ProductRelationship", b =>
-                {
-                    b.HasOne("KALS.Domain.Entity.Product", "ChildProduct")
-                        .WithMany("ParentProducts")
-                        .HasForeignKey("ChildProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("KALS.Domain.Entity.Product", "ParentProduct")
-                        .WithMany("ChildProducts")
-                        .HasForeignKey("ParentProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ChildProduct");
-
-                    b.Navigation("ParentProduct");
-                });
-
             modelBuilder.Entity("KALS.Domain.Entity.LabProduct", b =>
                 {
                     b.HasOne("KALS.Domain.Entity.Lab", "Lab")
@@ -530,6 +515,25 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.Navigation("Category");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("KALS.Domain.Entity.ProductRelationship", b =>
+                {
+                    b.HasOne("KALS.Domain.Entity.Product", "ChildProduct")
+                        .WithMany("ParentProducts")
+                        .HasForeignKey("ChildProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("KALS.Domain.Entity.Product", "ParentProduct")
+                        .WithMany("ChildProducts")
+                        .HasForeignKey("ParentProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ChildProduct");
+
+                    b.Navigation("ParentProduct");
                 });
 
             modelBuilder.Entity("KALS.Domain.Entity.Staff", b =>

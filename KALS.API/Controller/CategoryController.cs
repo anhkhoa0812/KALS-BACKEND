@@ -33,31 +33,31 @@ public class CategoryController: BaseController<CategoryController>
     [HttpPatch(ApiEndPointConstant.Category.UpdateProductCategory)]
     [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> UpdateProductCategoryByCategoryIdAsync(Guid categoryId, [FromBody] UpdateProductCategoryRequest request)
+    public async Task<IActionResult> UpdateProductCategoryByCategoryIdAsync(Guid id, [FromBody] UpdateProductCategoryRequest request)
     {
-        var response = await _categoryService.UpdateProductCategoryByCategoryIdAsync(categoryId, request);
+        var response = await _categoryService.UpdateProductCategoryByCategoryIdAsync(id, request);
         if (response == null)
         {
-            _logger.LogError($"Update product category failed with {categoryId}");
-            return Problem($"{MessageConstant.Category.UpdateProductCategoryFail}: {categoryId}");
+            _logger.LogError($"Update product category failed with {id}");
+            return Problem($"{MessageConstant.Category.UpdateProductCategoryFail}: {id}");
         }
-        _logger.LogInformation($"Update product category successful with {categoryId}");
+        _logger.LogInformation($"Update product category successful with {id}");
         return Ok(response);
     }
 
     [HttpPatch(ApiEndPointConstant.Category.CategoryById)]
     [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> UpdateCategoryAsync(Guid categoryId, [FromBody] UpdateCategoryRequest request)
+    public async Task<IActionResult> UpdateCategoryAsync(Guid id, [FromBody] UpdateCategoryRequest request)
     {
-        var response = await _categoryService.UpdateCategoryAsync(categoryId, request);
+        var response = await _categoryService.UpdateCategoryAsync(id, request);
         if (response == null)
         {
-            _logger.LogError($"Update category failed with {categoryId}");
-            return Problem($"{MessageConstant.Category.UpdateCategoryFail}: {categoryId}");
+            _logger.LogError($"Update category failed with {id}");
+            return Problem($"{MessageConstant.Category.UpdateCategoryFail}: {id}");
         }
 
-        _logger.LogInformation($"Update category successful with {categoryId}");
+        _logger.LogInformation($"Update category successful with {id}");
         return Ok(response);
     }
     [HttpPost(ApiEndPointConstant.Category.CategoryEndPoint)]

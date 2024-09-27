@@ -1,7 +1,7 @@
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using KALS.Domain.Entity;
 
-namespace KALS.Domain.Entity;
+namespace KALS.Domain.Entities;
 
 public class ProductRelationship
 {
@@ -11,4 +11,5 @@ public class ProductRelationship
     public Guid ChildProductId { get; set; }
     [ForeignKey(nameof(ChildProductId))]
     public Product ChildProduct { get; set; }
+    
 }

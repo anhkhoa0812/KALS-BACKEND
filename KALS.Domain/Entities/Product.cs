@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using KALS.Domain.Common;
+using KALS.Domain.Entities;
 
 namespace KALS.Domain.Entity;
 
@@ -12,7 +13,8 @@ public class Product: BaseEntity
     public DateTime CreatedAt { get; set; }
     public DateTime ModifiedAt { get; set; }
     public bool IsHidden { get; set; }
-    public string Type { get; set; }
+    
+    public bool IsKit { get; set; }
     
     
     public virtual ICollection<ProductRelationship>? ParentProducts { get; set; } 

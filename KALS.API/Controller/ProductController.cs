@@ -1,7 +1,6 @@
 using KALS.API.Constant;
 using KALS.API.Models.Lab;
 using KALS.API.Models.Product;
-using KALS.API.Models.ProductRelationship;
 using KALS.API.Services.Interface;
 using KALS.Domain.Paginate;
 using Microsoft.AspNetCore.Mvc;
@@ -64,7 +63,7 @@ public class ProductController : BaseController<ProductController>
     [HttpPatch(ApiEndPointConstant.Product.UpdateProductRelationship)]
     [ProducesResponseType(typeof(GetProductResponse), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> UpdateProductRelationshipByProductId(Guid id, [FromBody] UpdateProductRelationshipRequest request)
+    public async Task<IActionResult> UpdateProductRelationshipByProductId(Guid id, [FromBody] UpdateChildProductForKitRequest request)
     {
         var response = await _productService.UpdateProductRelationshipByProductIdAsync(id, request);
         if (response == null)

@@ -7,5 +7,5 @@ public class UpdateProductRequest
     public int Quantity { get; set; }
     public decimal Price { get; set; }
     public bool IsHidden { get; set; }
-    public string Type { get; set; }
+    public bool IsKit { get; set; }
 }

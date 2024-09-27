@@ -29,5 +29,8 @@
         <ProjectReference Include="..\KALS.DataAccess\KALS.DataAccess.csproj" />
         <ProjectReference Include="..\KALS.Domain\KALS.Domain.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Models\ProductRelationship\" />
+    </ItemGroup>
 
 </Project>
