@@ -1,12 +1,13 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using KALS.Domain.Common;
+using KALS.Domain.Enums;
 
 namespace KALS.Domain.Entity;
 
 public class Order: BaseEntity
 {
     public decimal Total { get; set; }
-    public string Status { get; set; }
+    public OrderStatus Status { get; set; }
     public string CreatedAt { get; set; }
     public string ModifiedAt { get; set; }
     public Guid MemberId { get; set; }

@@ -67,4 +67,14 @@ public class JwtUtil
         }
         return principal;
     }
+
+    public Guid GetUserIdFromToken(IHttpContextAccessor httpContextAccessor)
+    {
+        var userIdClaim = httpContextAccessor.HttpContext?.User?.FindFirst("userId");
+        if (userIdClaim != null)
+        {
+            return Guid.Parse(userIdClaim.Value);
+        }
+        return Guid.Empty;
+    }
 }

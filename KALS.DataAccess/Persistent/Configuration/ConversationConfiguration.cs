@@ -16,3 +16,26 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
             );
     }
 }
+
+public class PaymentConfiguration: IEntityTypeConfiguration<Payment>
+{
+    public void Configure(EntityTypeBuilder<Payment> builder)
+    {
+        builder.Property(p => p.Status)
+            .HasConversion(
+                v => v.ToString(),
+                v => (PaymentStatus)Enum.Parse(typeof(PaymentStatus), v)
+            );
+    }
+}
+public class OrderConfiguration: IEntityTypeConfiguration<Order>
+{
+    public void Configure(EntityTypeBuilder<Order> builder)
+    {
+        builder.Property(o => o.Status)
+            .HasConversion(
+                v => v.ToString(),
+                v => (OrderStatus)Enum.Parse(typeof(OrderStatus), v)
+            );
+    }
+}

@@ -1,4 +1,5 @@
 using KALS.Domain.Entity;
+using KALS.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -23,5 +24,10 @@ public class SupportRequestConfiguration: IEntityTypeConfiguration<SupportReques
             .WithMany()
             .HasForeignKey(sr => sr.LabId)
             .OnDelete(DeleteBehavior.Restrict);
+        builder.Property(sr => sr.Status)
+            .HasConversion(
+                v => v.ToString(),
+                v => (SupportRequestStatus)Enum.Parse(typeof(SupportRequestStatus), v)
+            );
     }
 }
