@@ -5,7 +5,7 @@ using KALS.API.Models.User;
 using KALS.API.Services.Interface;
 using KALS.API.Utils;
 using KALS.Domain.DataAccess;
-using KALS.Domain.Entity;
+using KALS.Domain.Entities;
 using KALS.Repository.Interface;
 using BadHttpRequestException = Microsoft.AspNetCore.Http.BadHttpRequestException;
 

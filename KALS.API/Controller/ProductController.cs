@@ -20,9 +20,9 @@ public class ProductController : BaseController<ProductController>
     }
     [HttpGet(ApiEndPointConstant.Product.ProductEndpoint)]
     [ProducesResponseType(typeof(IPaginate<GetProductResponse>), statusCode: StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllProduct(int page = 1, int size = 30, Guid? categoryId = null)
+    public async Task<IActionResult> GetAllProduct(int page = 1, int size = 30,[FromQuery] ProductFilter filter = null)
     {
-        var response = await _productService.GetAllProductPagingAsync(page, size, categoryId);
+        var response = await _productService.GetAllProductPagingAsync(page, size, filter);
         return Ok(response);
     }
     [HttpGet(ApiEndPointConstant.Product.ProductById)]

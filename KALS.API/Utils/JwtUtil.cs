@@ -2,7 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using KALS.Domain.Entity;
+using KALS.Domain.Entities;
 using Microsoft.IdentityModel.Tokens;
 
 namespace KALS.API.Utils;
@@ -28,7 +28,7 @@ public class JwtUtil
         {
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
-            new Claim(ClaimTypes.Role, user.Role.Name.ToString()),
+            new Claim(ClaimTypes.Role, user.Role.ToString()),
         };
         
         if(guidClaim != null) claims.Add(new Claim(guidClaim.Item1, guidClaim.Item2.ToString()));
@@ -68,7 +68,7 @@ public class JwtUtil
         return principal;
     }
 
-    public Guid GetUserIdFromToken(IHttpContextAccessor httpContextAccessor)
+    public static Guid GetUserIdFromToken(IHttpContextAccessor httpContextAccessor)
     {
         var userIdClaim = httpContextAccessor.HttpContext?.User?.FindFirst("userId");
         if (userIdClaim != null)

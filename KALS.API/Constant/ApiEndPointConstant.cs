@@ -34,4 +34,8 @@ public class ApiEndPointConstant
         public const string CategoryById = CategoryEndPoint + "/{id}";
         public const string UpdateProductCategory = CategoryById + "/product-category";
     }
+    public class Cart
+    {
+        public const string CartEndPoint = ApiEndpoint + "/cart";
+    }
 }

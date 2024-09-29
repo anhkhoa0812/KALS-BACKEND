@@ -1,5 +1,5 @@
 using System.Reflection;
-using KALS.Domain.Entity;
+using KALS.Domain.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,7 +15,6 @@ public class KitAndLabDbContext : DbContext
     }
     
     public DbSet<User> User { get; set; }
-    public DbSet<Role> Role { get; set; }
     public DbSet<Product> Product { get; set; }
     public DbSet<Category> Category { get; set; }
     public DbSet<ProductCategory> ProductCategory { get; set; }
@@ -34,7 +33,6 @@ public class KitAndLabDbContext : DbContext
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<User>().ToTable("User");
-        modelBuilder.Entity<Role>().ToTable("Role");
         modelBuilder.Entity<Product>().ToTable("Product");
         modelBuilder.Entity<Category>().ToTable("Category");
         modelBuilder.Entity<ProductCategory>().ToTable("ProductCategory");

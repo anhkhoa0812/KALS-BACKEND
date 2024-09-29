@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace KALS.Domain.Entity;
+namespace KALS.Domain.Entities;
 
 public class ProductCategory
 {

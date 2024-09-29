@@ -2,7 +2,7 @@ using System.Collections;
 using System.ComponentModel.DataAnnotations;
 using KALS.Domain.Common;
 
-namespace KALS.Domain.Entity;
+namespace KALS.Domain.Entities;
 
 public class Category : BaseEntity 
 {

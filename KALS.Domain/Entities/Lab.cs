@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using KALS.Domain.Common;
 
-namespace KALS.Domain.Entity;
+namespace KALS.Domain.Entities;
 
 public class Lab: BaseEntity
 {

@@ -6,4 +6,5 @@ namespace KALS.API.Services.Interface;
 public interface IUserService
 {
     Task<LoginResponse> LoginAsync(LoginRequest request);
+    
 }

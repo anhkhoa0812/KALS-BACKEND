@@ -1,6 +1,4 @@
 using System.ComponentModel.DataAnnotations.Schema;
-using KALS.Domain.Entity;
-
 namespace KALS.Domain.Entities;
 
 public class ProductRelationship

@@ -5,7 +5,6 @@ using KALS.API.Services.Interface;
 using KALS.API.Utils;
 using KALS.Domain.DataAccess;
 using KALS.Domain.Entities;
-using KALS.Domain.Entity;
 using KALS.Domain.Paginate;
 using KALS.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +17,7 @@ public class ProductService: BaseService<ProductService>, IProductService
     {
     }
 
-    public async Task<IPaginate<GetProductResponse>> GetAllProductPagingAsync(int page, int size, Guid? categoryId)
+    public async Task<IPaginate<GetProductResponse>> GetAllProductPagingAsync(int page, int size, ProductFilter filter)
     {
         var products = await _unitOfWork.GetRepository<Product>().GetPagingListAsync(
             selector: p => new GetProductResponse()
@@ -33,12 +32,13 @@ public class ProductService: BaseService<ProductService>, IProductService
                 IsHidden = p.IsHidden,
                 IsKit = p.IsKit
             },
-            predicate: p => !p.IsHidden && (!categoryId.HasValue || p.ProductCategories.Where(pc => pc.CategoryId == categoryId).Any()),
+            predicate: p => !p.IsHidden,
             orderBy: p => p.OrderByDescending(p => p.CreatedAt),
             page: page,
             size: size,
             include: p => p.Include(p => p.ProductCategories)
-                .ThenInclude(pc => pc.Category)
+                .ThenInclude(pc => pc.Category),
+            filter: filter
         );
         return products;
     }

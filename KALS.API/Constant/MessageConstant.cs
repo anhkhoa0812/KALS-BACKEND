@@ -33,4 +33,10 @@ public class MessageConstant
         public const string UpdateCategoryFail = "Cập nhật danh mục không thành công";
         public const string CreateCategoryFail = "Tạo danh mục không thành công";
     }
+
+    public static class Cart
+    {
+        public const string AddToCartFail = "Thêm sản phẩm vào giỏ hàng không thành công";
+        public const string RemoveFromCartFail = "Xóa sản phẩm khỏi giỏ hàng không thành công";
+    }
 }

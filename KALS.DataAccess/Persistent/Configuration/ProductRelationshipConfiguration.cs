@@ -1,5 +1,4 @@
 using KALS.Domain.Entities;
-using KALS.Domain.Entity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

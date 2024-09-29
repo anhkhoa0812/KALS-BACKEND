@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using KALS.Domain.Common;
+using KALS.Domain.Enums;
 
-namespace KALS.Domain.Entity;
+namespace KALS.Domain.Entities;
 
 public class User: BaseEntity
 {
@@ -14,8 +15,5 @@ public class User: BaseEntity
     public string PhoneNumber { get; set; }
     [MaxLength(250)]
     public string FullName { get; set; }
-    public Guid RoleId { get; set; }
-    
-    [ForeignKey(nameof(RoleId))]
-    public Role Role { get; set; }
+    public RoleEnum Role { get; set; }
 }

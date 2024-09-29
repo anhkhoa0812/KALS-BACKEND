@@ -49,14 +49,18 @@ public class GenericRepository<T>: IGenericRepository<T>, IAsyncDisposable where
         return query.AsNoTracking().Select(selector).FirstOrDefaultAsync();
     }
 
-    public Task<IPaginate<TResult>> GetPagingListAsync<TResult>(Expression<Func<T, TResult>> selector, Expression<Func<T, bool>> predicate = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+    public Task<IPaginate<TResult>> GetPagingListAsync<TResult>(Expression<Func<T, TResult>> selector, IFilter<T> filter, Expression<Func<T, bool>> predicate = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
         Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null, int page = 1, int size = 10)
     {
         IQueryable<T> query = _dbSet;
+        if (filter != null)
+        {
+            var filterExpression = filter.ToExpression();
+            query = query.Where(filterExpression);
+        }
         if (include != null) query = include(query);
         if (predicate != null) query = query.Where(predicate);
         if (orderBy != null) return orderBy(query).AsNoTracking().Select(selector).ToPaginateAsync(page, size, 1);
-
         return query.AsNoTracking().Select(selector).ToPaginateAsync(page, size, 1);
     }
 

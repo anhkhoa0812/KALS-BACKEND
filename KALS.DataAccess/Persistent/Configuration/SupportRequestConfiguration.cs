@@ -1,4 +1,4 @@
-using KALS.Domain.Entity;
+using KALS.Domain.Entities;
 using KALS.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

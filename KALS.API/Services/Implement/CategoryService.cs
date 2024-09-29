@@ -4,7 +4,7 @@ using KALS.API.Models.Category;
 using KALS.API.Services.Interface;
 using KALS.API.Utils;
 using KALS.Domain.DataAccess;
-using KALS.Domain.Entity;
+using KALS.Domain.Entities;
 using KALS.Domain.Paginate;
 using KALS.Repository.Interface;
 using Microsoft.EntityFrameworkCore;

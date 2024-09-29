@@ -5,7 +5,7 @@ namespace KALS.API.Services.Interface;
 
 public interface IProductService
 {
-    Task<IPaginate<GetProductResponse>> GetAllProductPagingAsync(int page, int size, Guid? categoryId);
+    Task<IPaginate<GetProductResponse>> GetAllProductPagingAsync(int page, int size, ProductFilter filter);
     Task<GetProductDetailResponse> GetProductByIdAsync(Guid id);
     
     Task<GetProductResponse> CreateProductAsync(CreateProductRequest request);

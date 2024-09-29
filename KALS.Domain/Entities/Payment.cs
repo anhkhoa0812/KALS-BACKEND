@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using KALS.Domain.Common;
 using KALS.Domain.Enums;
 
-namespace KALS.Domain.Entity;
+namespace KALS.Domain.Entities;
 
 public class Payment: BaseEntity
 {

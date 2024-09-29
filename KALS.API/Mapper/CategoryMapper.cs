@@ -1,6 +1,6 @@
 using AutoMapper;
 using KALS.API.Models.Category;
-using KALS.Domain.Entity;
+using KALS.Domain.Entities;
 
 namespace KALS.API.Mapper;
 
