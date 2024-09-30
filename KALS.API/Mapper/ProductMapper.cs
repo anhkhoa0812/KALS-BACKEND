@@ -1,4 +1,5 @@
 using AutoMapper;
+using KALS.API.Models.Cart;
 using KALS.API.Models.Product;
 using KALS.Domain.Entities;
 
@@ -10,5 +11,6 @@ public class ProductMapper: Profile
     {
         CreateMap<CreateProductRequest, Product>();
         CreateMap<Product, GetProductResponse>();
+        CreateMap<Product, CartModelResponse>();
     }
 }

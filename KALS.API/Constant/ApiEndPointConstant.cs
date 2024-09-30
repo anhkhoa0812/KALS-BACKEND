@@ -16,7 +16,7 @@ public class ApiEndPointConstant
 
     public class Product
     {
-        public const string ProductEndpoint = ApiEndpoint + "/product";
+        public const string ProductEndpoint = ApiEndpoint + "/products";
         public const string ProductById = ProductEndpoint + "/{id}";
         public const string UpdateProductRelationship = ProductById + "/product-relationship";
         public const string LabToProduct = ProductById + "/lab";
@@ -24,18 +24,25 @@ public class ApiEndPointConstant
 
     public class Lab
     {
-        public const string LabEndPoint = ApiEndpoint + "/lab";
+        public const string LabEndPoint = ApiEndpoint + "/labs";
         public const string LabById = LabEndPoint + "/{id}";
     }
 
     public class Category
     {
-        public const string CategoryEndPoint = ApiEndpoint + "/category";
+        public const string CategoryEndPoint = ApiEndpoint + "/categories";
         public const string CategoryById = CategoryEndPoint + "/{id}";
         public const string UpdateProductCategory = CategoryById + "/product-category";
     }
     public class Cart
     {
-        public const string CartEndPoint = ApiEndpoint + "/cart";
+        public const string CartEndPoint = ApiEndpoint + "/carts";
+    }
+
+    public class Auth
+    {
+        public const string SendOtp = ApiEndpoint + "/otp";
+        public const string Signup = ApiEndpoint + "/signup";
+        public const string Login = ApiEndpoint + "/login";
     }
 }

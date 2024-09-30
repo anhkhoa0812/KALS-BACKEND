@@ -10,11 +10,11 @@ public class Member : BaseEntity
     [ForeignKey(nameof(UserId))]
     public User User { get; set; }
     [MaxLength(255)]
-    public string Province { get; set; }
+    public string? Province { get; set; }
     [MaxLength(255)]
-    public string District { get; set; }
+    public string? District { get; set; }
     [MaxLength(255)]
-    public string Ward { get; set; }
+    public string? Ward { get; set; }
     [MaxLength(500)]
-    public string Address { get; set; }
+    public string? Address { get; set; }
 }

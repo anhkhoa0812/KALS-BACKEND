@@ -6,6 +6,11 @@ public class MessageConstant
     {
         public const string UserNotFound = "Username không tồn tại";
         public const string PasswordIncorrect = "Mật khẩu không chính xác";
+        public const string PhoneNumberNotFound = "Số điện thoại không tồn tại";
+        public const string RegisterFail = "Đăng ký không thành công";
+        public const string UserNameExisted = "Tên đăng nhập đã tồn tại";
+        public const string PhoneNumberExisted = "Số điện thoại đã tồn tại";
+        public const string LoginFail = "Đăng nhập không thành công";
     }
 
     public static class Product
@@ -23,6 +28,8 @@ public class MessageConstant
     {
         public const string AssignLabToProductFail = "Gán lab cho sản phẩm không thành công";
         public const string LabIdNotNull = "Id lab không được để trống";
+        public const string UploadFileFail = "Upload file không thành công";
+        public const string CreateLabFail = "Tạo lab không thành công";
     }
 
     public static class Category
@@ -38,5 +45,15 @@ public class MessageConstant
     {
         public const string AddToCartFail = "Thêm sản phẩm vào giỏ hàng không thành công";
         public const string RemoveFromCartFail = "Xóa sản phẩm khỏi giỏ hàng không thành công";
+        public const string QuantityMustBeGreaterThanZero = "Số lượng sản phẩm phải lớn hơn 0";
+        public const string UpdateQuantityFail = "Cập nhật số lượng sản phẩm không thành công";
+    }
+
+    public static class Sms
+    {
+        public const string SendSmsFailed = "Gửi tin nhắn không thành công";
+        public const string OtpAlreadySent = "Mã OTP đã được gửi";
+        public const string OtpNotFound = "Mã OTP không tồn tại";
+        public const string OtpIncorrect = "Mã OTP không chính xác";
     }
 }

@@ -30,5 +30,19 @@ public class LabController: BaseController<LabController>
         var response = await _labService.GetLabByIdAsync(id);
         return Ok(response);
     }
+    [HttpPost(ApiEndPointConstant.Lab.LabEndPoint)]
+    [ProducesResponseType(typeof(LabResponse), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CreateLab([FromForm] CreateLabRequest request)
+    {
+        var response = await _labService.CreateLabAsync(request);
+        if (response == null)
+        {
+            _logger.LogError($"Create new lab failed with {request.Name}");
+            return Problem($"{MessageConstant.Lab.CreateLabFail}: {request.Name}");
+        }
+        _logger.LogInformation($"Create new lab successful with {request.Name}");
+        return CreatedAtAction(nameof(CreateLab), response);
+    }
     
 }

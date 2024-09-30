@@ -18,52 +18,56 @@ public class CartService: BaseService<CartService>, ICartService
     {
     }
 
-    public async Task<ICollection<CartModel>> AddToCartAsync(CartModel model)
+    public async Task<ICollection<CartModelResponse>> AddToCartAsync(CartModel request)
     {
         var userId = JwtUtil.GetUserIdFromToken(_httpContextAccessor);
-        if (userId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.User.UserNotFound);
+        if (userId == Guid.Empty) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
         var user = await _unitOfWork.GetRepository<User>().SingleOrDefaultAsync(
             predicate:x => x.Id == userId
         );
         if (user == null) throw new BadHttpRequestException(MessageConstant.User.UserNotFound);
 
         var product = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
-            predicate: x => x.Id == model.ProductId
+            predicate: x => x.Id == request.ProductId
         );
         if(product == null) throw new BadHttpRequestException(MessageConstant.Product.ProductNotFound);
+        
+        var response = _mapper.Map<CartModelResponse>(product);
+        response.Quantity = request.Quantity;
+        response.ProductId = product.Id;
+        
         var redis = ConnectionMultiplexer.Connect(_configuration.GetConnectionString("Redis"));
         var db = redis.GetDatabase();
-        
         var key = "Cart:" + userId;
         var cartData =  await db.StringGetAsync(key);
-        List<CartModel> cart = new();
+        List<CartModelResponse> cart = new();
 
         if (cartData.IsNullOrEmpty)
         {
-            cart = new List<CartModel>();
+            cart = new List<CartModelResponse>();
         }
         else
         {
-            cart = JsonConvert.DeserializeObject<List<CartModel>>(cartData);
+            cart = JsonConvert.DeserializeObject<List<CartModelResponse>>(cartData);
         }
-        var existedProduct = cart.FirstOrDefault(x => x.ProductId == model.ProductId);
+        var existedProduct = cart.FirstOrDefault(x => x.ProductId == request.ProductId);
         if (existedProduct != null)
         {
-            existedProduct.Quantity += model.Quantity;
+            existedProduct.Quantity += request.Quantity;
         }
         else
         {
-            cart.Add(model);
+            cart.Add(response);
         }
         var updatedCart = JsonConvert.SerializeObject(cart);
         await db.StringSetAsync(key, updatedCart);
         return cart;
     }
 
-    public async Task<ICollection<CartModel>> GetCartAsync()
+    public async Task<ICollection<CartModelResponse>> GetCartAsync()
     {
         var userId = JwtUtil.GetUserIdFromToken(_httpContextAccessor);
-        if (userId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.User.UserNotFound);
+        if (userId == Guid.Empty) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
         var redis = ConnectionMultiplexer.Connect(_configuration.GetConnectionString("Redis"));
         var db = redis.GetDatabase();
         var key = "Cart:" + userId;
@@ -72,16 +76,16 @@ public class CartService: BaseService<CartService>, ICartService
 
         if (cartData.IsNullOrEmpty)
         {
-            return new List<CartModel>();
+            return new List<CartModelResponse>();
         }
-        var cart = JsonConvert.DeserializeObject<List<CartModel>>(cartData);
+        var cart = JsonConvert.DeserializeObject<List<CartModelResponse>>(cartData);
         return cart;
     }
 
-    public async Task<ICollection<CartModel>> RemoveFromCartAsync(Guid productId)
+    public async Task<ICollection<CartModelResponse>> RemoveFromCartAsync(Guid productId)
     {
         var userId = JwtUtil.GetUserIdFromToken(_httpContextAccessor);
-        if (userId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.User.UserNotFound);
+        if (userId == Guid.Empty) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
 
         if (productId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.Product.ProductIdNotNull);
         var redis = ConnectionMultiplexer.Connect(_configuration.GetConnectionString("Redis"));
@@ -91,9 +95,9 @@ public class CartService: BaseService<CartService>, ICartService
         
         if (cartData.IsNullOrEmpty)
         {
-            return new List<CartModel>();
+            return new List<CartModelResponse>();
         }
-        var cart = JsonConvert.DeserializeObject<List<CartModel>>(cartData);
+        var cart = JsonConvert.DeserializeObject<List<CartModelResponse>>(cartData);
         var product = cart.FirstOrDefault(x => x.ProductId == productId);
 
         if (product == null) throw new BadHttpRequestException(MessageConstant.Product.ProductNotFound);
@@ -108,6 +112,37 @@ public class CartService: BaseService<CartService>, ICartService
             await db.StringSetAsync(key, updatedCart);
         }
 
+        return cart;
+    }
+
+    public async Task<ICollection<CartModelResponse>> UpdateQuantityAsync(CartModel request)
+    {
+        if (request.ProductId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.Product.ProductIdNotNull);
+        if (request.Quantity <= 0) throw new BadHttpRequestException(MessageConstant.Cart.QuantityMustBeGreaterThanZero);
+        
+        var userId = JwtUtil.GetUserIdFromToken(_httpContextAccessor);
+        if (userId == Guid.Empty) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
+        
+        var product = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
+            predicate: x => x.Id == request.ProductId
+        );
+        if(product == null) throw new BadHttpRequestException(MessageConstant.Product.ProductNotFound);
+        
+        var redis = ConnectionMultiplexer.Connect(_configuration.GetConnectionString("Redis"));
+        var db = redis.GetDatabase();
+        var key = "Cart:" + userId;
+        var cartData = await db.StringGetAsync(key);
+        
+        if (cartData.IsNullOrEmpty)
+        {
+            return new List<CartModelResponse>();
+        }
+        var cart = JsonConvert.DeserializeObject<List<CartModelResponse>>(cartData);
+        var existedProduct = cart.FirstOrDefault(x => x.ProductId == request.ProductId);
+        if (existedProduct == null) throw new BadHttpRequestException(MessageConstant.Product.ProductNotFound);
+        existedProduct.Quantity = request.Quantity;
+        var updatedCart = JsonConvert.SerializeObject(cart);
+        await db.StringSetAsync(key, updatedCart);
         return cart;
     }
 }

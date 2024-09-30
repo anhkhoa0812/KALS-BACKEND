@@ -25,7 +25,9 @@ public interface IGenericRepository<T>: IDisposable where T : class
         Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
         Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null,
         int page = 1,
-        int size = 10
+        int size = 10,
+        string? sortBy = null,
+        bool isAsc = true
     );
     Task<ICollection<T>> GetListAsync(
         Expression<Func<T, bool>> predicate = null,

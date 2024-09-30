@@ -39,6 +39,11 @@ public class ExceptionHandlingMiddleware
                 errorResponse.StatusCode = (int)HttpStatusCode.BadRequest;
                 _logger.LogInformation(ex.ToString());
                 break;
+            case UnauthorizedAccessException:
+                response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                errorResponse.StatusCode = (int)HttpStatusCode.Unauthorized;
+                _logger.LogInformation(ex.ToString());
+                break;
             default:
                 response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 errorResponse.StatusCode = (int)HttpStatusCode.InternalServerError;

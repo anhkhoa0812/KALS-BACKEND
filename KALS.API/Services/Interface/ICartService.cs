@@ -5,8 +5,10 @@ namespace KALS.API.Services.Interface;
 
 public interface ICartService
 {
-    Task<ICollection<CartModel>> AddToCartAsync(CartModel model);
-    Task<ICollection<CartModel>> GetCartAsync();
+    Task<ICollection<CartModelResponse>> AddToCartAsync(CartModel model);
+    Task<ICollection<CartModelResponse>> GetCartAsync();
     
-    Task<ICollection<CartModel>> RemoveFromCartAsync(Guid productId);
+    Task<ICollection<CartModelResponse>> RemoveFromCartAsync(Guid productId);
+    
+    Task<ICollection<CartModelResponse>> UpdateQuantityAsync(CartModel request);
 }

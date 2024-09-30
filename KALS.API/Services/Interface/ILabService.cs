@@ -10,4 +10,8 @@ public interface ILabService
     Task<IPaginate<LabResponse>> GetLabsAsync(int page, int size, string? searchName);
     Task<LabResponse> GetLabByIdAsync(Guid labId);
     Task<ProductWithLabResponse> GetLabsByProductIdAsync(Guid productId);
+    
+    Task<LabResponse> CreateLabAsync(CreateLabRequest request);
+    
+    // Task<LabResponse> UpdateLabAsync(Guid labId, UpdateLabRequest request);
 }

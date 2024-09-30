@@ -12,5 +12,7 @@ public class Lab: BaseEntity
     public DateTime CreatedAt { get; set; }
     public DateTime ModifiedAt { get; set; }
     
+    public Guid CreatedBy { get; set; }
+    public Guid ModifiedBy { get; set; }
     public virtual ICollection<LabProduct>? LabProducts { get; set; }
 }

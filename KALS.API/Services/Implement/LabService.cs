@@ -1,8 +1,10 @@
 using AutoMapper;
 using KALS.API.Constant;
+using KALS.API.Models.GoogleDrive;
 using KALS.API.Models.Lab;
 using KALS.API.Models.Product;
 using KALS.API.Services.Interface;
+using KALS.API.Utils;
 using KALS.Domain.DataAccess;
 using KALS.Domain.Entities;
 using KALS.Domain.Paginate;
@@ -73,7 +75,9 @@ public class LabService: BaseService<LabService>, ILabService
                 Name = l.Name,
                 Url = l.Url,
                 CreatedAt = l.CreatedAt,
-                ModifiedAt = l.ModifiedAt
+                ModifiedAt = l.ModifiedAt,
+                CreatedBy = l.CreatedBy,
+                ModifiedBy = l.ModifiedBy,
             },
             predicate: l => (searchName.IsNullOrEmpty() || l.Name.Contains(searchName!)),
             page: page,
@@ -126,10 +130,49 @@ public class LabService: BaseService<LabService>, ILabService
                         Name = l.Name,
                         Url = l.Url,
                         CreatedAt = l.CreatedAt,
-                        ModifiedAt = l.ModifiedAt
+                        ModifiedAt = l.ModifiedAt,
+                        CreatedBy = l.CreatedBy,
+                        ModifiedBy = l.ModifiedBy
                     }).ToList()
             }
         );
         return product;
+    }
+
+    public async Task<LabResponse> CreateLabAsync(CreateLabRequest request)
+    {
+        var userId = JwtUtil.GetUserIdFromToken(_httpContextAccessor);
+        if (userId == Guid.Empty) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
+        var user = await _unitOfWork.GetRepository<User>().SingleOrDefaultAsync(
+            predicate: u => u.Id == userId
+        );
+        if(user == null) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
+        
+        var googleDriveResponse = await GoogleDriveUtil.UploadToGoogleDrive(request.File, _configuration, _logger);
+        if (googleDriveResponse == null) throw new BadHttpRequestException(MessageConstant.Lab.UploadFileFail);
+        if(request.Name is null) request.Name = request.File.FileName;
+        var lab = _mapper.Map<Lab>(request);
+        lab.Id = Guid.NewGuid();
+        lab.Url = googleDriveResponse.Url;
+        lab.CreatedAt = TimeUtil.GetCurrentSEATime();
+        lab.ModifiedAt = TimeUtil.GetCurrentSEATime();
+        lab.CreatedBy = user.Id;
+        lab.ModifiedBy = user.Id;
+        
+        // var lab = new Lab()
+        // {
+        //     Id = Guid.NewGuid(),
+        //     Name = request.Name ??= googleDriveResponse.FileName,
+        //     Url = googleDriveResponse.Url,
+        //     CreatedAt = TimeUtil.GetCurrentSEATime(),
+        //     ModifiedAt = TimeUtil.GetCurrentSEATime(),
+        //     CreatedBy = user.Id,
+        //     UploadedBy = user.Id
+        // };
+        await _unitOfWork.GetRepository<Lab>().InsertAsync(lab);
+        bool isSuccess = await _unitOfWork.CommitAsync() > 0;
+        LabResponse labResponse = null;
+        if (isSuccess) labResponse = _mapper.Map<LabResponse>(lab);
+        return labResponse;
     }
 }

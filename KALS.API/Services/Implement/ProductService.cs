@@ -17,7 +17,7 @@ public class ProductService: BaseService<ProductService>, IProductService
     {
     }
 
-    public async Task<IPaginate<GetProductResponse>> GetAllProductPagingAsync(int page, int size, ProductFilter filter)
+    public async Task<IPaginate<GetProductResponse>> GetAllProductPagingAsync(int page, int size, ProductFilter filter, string? sortBy, bool isAsc)
     {
         var products = await _unitOfWork.GetRepository<Product>().GetPagingListAsync(
             selector: p => new GetProductResponse()
@@ -33,12 +33,14 @@ public class ProductService: BaseService<ProductService>, IProductService
                 IsKit = p.IsKit
             },
             predicate: p => !p.IsHidden,
-            orderBy: p => p.OrderByDescending(p => p.CreatedAt),
+            // orderBy: p => p.OrderByDescending(p => p.CreatedAt),
             page: page,
             size: size,
             include: p => p.Include(p => p.ProductCategories)
                 .ThenInclude(pc => pc.Category),
-            filter: filter
+            filter: filter,
+            sortBy: sortBy,
+            isAsc: isAsc
         );
         return products;
     }
