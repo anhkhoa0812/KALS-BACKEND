@@ -19,7 +19,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasData(new User()
         {
             Id = Guid.NewGuid(),
-            UserName = "admin",
+            Username = "admin",
             Password = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes("admin"))),
             PhoneNumber = "0123456789",
             FullName = "Admin",

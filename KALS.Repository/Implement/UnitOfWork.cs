@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using KALS.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace KALS.Repository.Implement;
 
@@ -26,6 +27,7 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext> where TContext : DbCon
         _repositories.Add(typeof(TEntity), repository);
         return (IGenericRepository<TEntity>)repository;
     }
+    
 
     public void Dispose()
     {
@@ -43,6 +45,20 @@ public class UnitOfWork<TContext> : IUnitOfWork<TContext> where TContext : DbCon
         TrackChanges();
         return Context.SaveChangesAsync();
     }
+
+    public async Task<IDbContextTransaction> BeginTransactionAsync()
+    {
+        return await Context.Database.BeginTransactionAsync();
+    }
+
+    public async Task RollbackTransactionAsync(IDbContextTransaction transaction)
+    {
+        if (transaction != null)
+        {
+            await transaction.RollbackAsync();
+        }
+    }
+
     private void TrackChanges()
     {
         var validationErrors = Context.ChangeTracker.Entries<IValidatableObject>()

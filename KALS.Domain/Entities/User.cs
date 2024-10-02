@@ -8,7 +8,7 @@ namespace KALS.Domain.Entities;
 public class User: BaseEntity
 {
     [MaxLength(250)]
-    public string UserName { get; set; }
+    public string Username { get; set; }
     [MaxLength(250)]
     public string Password { get; set; }
     [MaxLength(13)]

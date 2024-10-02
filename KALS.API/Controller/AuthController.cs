@@ -16,31 +16,31 @@ public class AuthController: BaseController<AuthController>
     }
     
     [HttpPost(ApiEndPointConstant.Auth.SendOtp)]
-    [ProducesResponseType(typeof(NoContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> SendOtp([FromBody] string phoneNumber)
+    public async Task<IActionResult> SendOtp([FromBody] GenerateOtpRequest request)
     {
-        var result = await _userService.GenerateOtpAsync(phoneNumber);
+        var result = await _userService.GenerateOtpAsync(request);
         if (result == null)
         {
             return Problem(MessageConstant.Sms.SendSmsFailed);
         }
 
-        return NoContent();
+        return Ok(result);
     }
     [HttpPost(ApiEndPointConstant.Auth.Signup)]
-    [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Signup([FromBody] RegisterRequest registerRequest)
     {
         var loginResponse = await _userService.RegisterAsync(registerRequest);
         if (loginResponse == null)
         {
-            _logger.LogError($"Sign up failed with {registerRequest.UserName}");
+            _logger.LogError($"Sign up failed with {registerRequest.Username}");
             return Problem(MessageConstant.User.RegisterFail);
         }
-        _logger.LogInformation($"Sign up successful with {registerRequest.UserName}");
-        return Ok(loginResponse);
+        _logger.LogInformation($"Sign up successful with {registerRequest.Username}");
+        return CreatedAtAction(nameof(Signup), loginResponse);
     }
     [HttpPost(ApiEndPointConstant.Auth.Login)]
     [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
@@ -50,10 +50,10 @@ public class AuthController: BaseController<AuthController>
         var loginResponse = await _userService.LoginAsync(loginRequest);
         if (loginResponse == null)
         {
-            _logger.LogError($"Login failed with {loginRequest.UserNameOrPhoneNumber}");
+            _logger.LogError($"Login failed with {loginRequest.UsernameOrPhoneNumber}");
             return Problem(MessageConstant.User.LoginFail);
         }
-        _logger.LogInformation($"Login successful with {loginRequest.UserNameOrPhoneNumber}");
+        _logger.LogInformation($"Login successful with {loginRequest.UsernameOrPhoneNumber}");
         return Ok(loginResponse);
     }
     

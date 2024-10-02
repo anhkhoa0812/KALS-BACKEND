@@ -25,7 +25,7 @@ public class UserService : BaseService<UserService>, IUserService
     public async Task<LoginResponse> LoginAsync(LoginRequest request)
     {
         var user = await _unitOfWork.GetRepository<User>().SingleOrDefaultAsync(
-            predicate: u => u.UserName == request.UserNameOrPhoneNumber || u.PhoneNumber == request.UserNameOrPhoneNumber);
+            predicate: u => u.Username == request.UsernameOrPhoneNumber || u.PhoneNumber == request.UsernameOrPhoneNumber);
         if (user == null) throw new BadHttpRequestException(MessageConstant.User.UserNotFound);
 
         if(user.Password != PasswordUtil.HashPassword(request.Password)) throw new BadHttpRequestException(MessageConstant.User.PasswordIncorrect);
@@ -35,7 +35,7 @@ public class UserService : BaseService<UserService>, IUserService
         var loginResponse = new LoginResponse()
         {
             Id = user.Id,
-            UserName = user.UserName,
+            Username = user.Username,
             FullName = user.FullName, 
             Token = token,
             RefreshToken = refreshToken
@@ -46,7 +46,7 @@ public class UserService : BaseService<UserService>, IUserService
     public async Task<LoginResponse> RegisterAsync(RegisterRequest request)
     {
         var userList = await _unitOfWork.GetRepository<User>().GetListAsync();
-        if (userList.Any(u => u.UserName == request.UserName)) throw new BadHttpRequestException(MessageConstant.User.UserNameExisted);
+        if (userList.Any(u => u.Username == request.Username)) throw new BadHttpRequestException(MessageConstant.User.UserNameExisted);
         if (userList.Any(u => u.PhoneNumber == request.PhoneNumber)) throw new BadHttpRequestException(MessageConstant.User.PhoneNumberExisted);
         var user = _mapper.Map<User>(request);
         var redis = ConnectionMultiplexer.Connect(_configuration.GetConnectionString("Redis"));
@@ -76,17 +76,17 @@ public class UserService : BaseService<UserService>, IUserService
         return response;
     }
 
-    public async Task<string> GenerateOtpAsync(string phoneNumber)
+    public async Task<string> GenerateOtpAsync(GenerateOtpRequest request)
     {
         var redis = ConnectionMultiplexer.Connect(_configuration.GetConnectionString("Redis"));
         var db = redis.GetDatabase();
-        var key = phoneNumber;
+        var key = request.PhoneNumber;
         
         var existingOtp = await db.StringGetAsync(key);
         if (!string.IsNullOrEmpty(existingOtp)) throw new BadHttpRequestException(MessageConstant.Sms.OtpAlreadySent);
         
-        if(phoneNumber == null) throw new BadHttpRequestException(MessageConstant.User.PhoneNumberNotFound);
-        var phoneNumberArray = new string[] { phoneNumber };
+        if(request.PhoneNumber == null) throw new BadHttpRequestException(MessageConstant.User.PhoneNumberNotFound);
+        var phoneNumberArray = new string[] { request.PhoneNumber };
         var otp = OtpUtil.GenerateOtp();
         var content = "Mã OTP của bạn là: " + otp;
         var response = SmsUtil.sendSMS(phoneNumberArray, content, _configuration);
@@ -98,6 +98,6 @@ public class UserService : BaseService<UserService>, IUserService
         }
         
         await db.StringSetAsync(key, otp, TimeSpan.FromMinutes(2));
-        return phoneNumber;
+        return request.PhoneNumber;
     }
 }

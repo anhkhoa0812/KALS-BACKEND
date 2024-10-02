@@ -13,6 +13,10 @@ public class MessageConstant
         public const string LoginFail = "Đăng nhập không thành công";
     }
 
+    public static class Order
+    {
+        public const string CreateOrderFail = "Tạo đơn hàng không thành công";
+    }
     public static class Product
     {
         public const string ChildProductNotFound = "Sản phẩm con không tồn tại";

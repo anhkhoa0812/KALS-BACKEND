@@ -45,4 +45,8 @@ public class ApiEndPointConstant
         public const string Signup = ApiEndpoint + "/signup";
         public const string Login = ApiEndpoint + "/login";
     }
+    public class Payment
+    {
+        public const string PaymentEndPoint = ApiEndpoint + "/payments";
+    }
 }

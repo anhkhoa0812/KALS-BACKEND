@@ -18,7 +18,7 @@ public class CartController: BaseController<CartController>
     }
     
     [HttpPost(ApiEndPointConstant.Cart.CartEndPoint)]
-    [ProducesResponseType(typeof(ICollection<CartModel>), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ICollection<CartModelResponse>), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AddToCartAsync([FromBody] CartModel request)
     {
@@ -32,7 +32,7 @@ public class CartController: BaseController<CartController>
         return Ok(response);
     }
     [HttpGet(ApiEndPointConstant.Cart.CartEndPoint)]
-    [ProducesResponseType(typeof(ICollection<CartModel>), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ICollection<CartModelResponse>), statusCode: StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCartAsync()
     {
         var response = await _cartService.GetCartAsync();
@@ -40,7 +40,7 @@ public class CartController: BaseController<CartController>
     }
     
     [HttpDelete(ApiEndPointConstant.Cart.CartEndPoint)]
-    [ProducesResponseType(typeof(ICollection<CartModel>), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ICollection<CartModelResponse>), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RemoveFromCartAsync([FromQuery] Guid productId)
     {

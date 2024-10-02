@@ -50,7 +50,9 @@ public class KitAndLabDbContext : DbContext
     {
         if (!optionsBuilder.IsConfigured)
         {
-            optionsBuilder.UseSqlServer("Server=127.0.0.1,1433;Database=KALS;User Id=sa;Password=123456aA@$;Encrypt=True;TrustServerCertificate=True");
+            // optionsBuilder.UseSqlServer("Server=127.0.0.1,1433;Database=KALS;User Id=sa;Password=123456aA@$;Encrypt=True;TrustServerCertificate=True");
+            optionsBuilder.UseSqlServer(
+                "Server=103.238.235.227,1433;Database=KALS;User Id=sa;Password=$Thanhkhoa;Encrypt=True;TrustServerCertificate=True");
         }
     }
  }

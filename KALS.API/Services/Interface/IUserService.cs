@@ -9,6 +9,6 @@ public interface IUserService
 
     Task<LoginResponse> RegisterAsync(RegisterRequest request);
     
-    Task<string> GenerateOtpAsync(string phoneNumber);
+    Task<string> GenerateOtpAsync(GenerateOtpRequest request);
     
 }

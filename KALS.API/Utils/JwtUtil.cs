@@ -27,7 +27,7 @@ public class JwtUtil
         List<Claim> claims = new List<Claim>()
         {
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+            new Claim(JwtRegisteredClaimNames.Sub, user.Username),
             new Claim(ClaimTypes.Role, user.Role.ToString()),
         };
         

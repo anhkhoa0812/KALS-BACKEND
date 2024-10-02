@@ -38,6 +38,7 @@ public static class DependencyService
         service.AddScoped<ILabService, LabService>();
         service.AddScoped<ICategoryService, CategoryService>();
         service.AddScoped<ICartService, CartService>();
+        service.AddScoped<IPaymentService, PaymentService>();
         return service;
     }
 

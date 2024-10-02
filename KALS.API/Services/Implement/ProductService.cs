@@ -1,5 +1,6 @@
 using AutoMapper;
 using KALS.API.Constant;
+using KALS.API.Models.Category;
 using KALS.API.Models.Product;
 using KALS.API.Services.Interface;
 using KALS.API.Utils;
@@ -17,10 +18,10 @@ public class ProductService: BaseService<ProductService>, IProductService
     {
     }
 
-    public async Task<IPaginate<GetProductResponse>> GetAllProductPagingAsync(int page, int size, ProductFilter filter, string? sortBy, bool isAsc)
+    public async Task<IPaginate<GetProductWithCatogoriesResponse>> GetAllProductPagingAsync(int page, int size, ProductFilter filter, string? sortBy, bool isAsc)
     {
         var products = await _unitOfWork.GetRepository<Product>().GetPagingListAsync(
-            selector: p => new GetProductResponse()
+            selector: p => new GetProductWithCatogoriesResponse()
             {
                 Id = p.Id,
                 Name = p.Name,
@@ -30,7 +31,15 @@ public class ProductService: BaseService<ProductService>, IProductService
                 CreatedAt = p.CreatedAt,
                 ModifiedAt = p.ModifiedAt,
                 IsHidden = p.IsHidden,
-                IsKit = p.IsKit
+                IsKit = p.IsKit,
+                Categories = p.ProductCategories.Any(pc => pc.ProductId == p.Id) ? p.ProductCategories.Select(pc => new CategoryResponse()
+                {
+                    Id = pc.Category.Id,
+                    Name = pc.Category.Name,
+                    Description = pc.Category.Description,
+                    CreatedAt = pc.Category.CreatedAt,
+                    ModifiedAt = pc.Category.ModifiedAt,
+                }).ToList() : null
             },
             predicate: p => !p.IsHidden,
             // orderBy: p => p.OrderByDescending(p => p.CreatedAt),
