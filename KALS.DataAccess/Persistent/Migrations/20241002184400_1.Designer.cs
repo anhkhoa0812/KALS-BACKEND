@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KALS.DataAccess.Persistent.Migrations
 {
     [DbContext(typeof(KitAndLabDbContext))]
-    [Migration("20240927174940_5")]
-    partial class _5
+    [Migration("20241002184400_1")]
+    partial class _1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,22 +25,7 @@ namespace KALS.DataAccess.Persistent.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("KALS.Domain.Entities.ProductRelationship", b =>
-                {
-                    b.Property<Guid>("ParentProductId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ChildProductId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("ParentProductId", "ChildProductId");
-
-                    b.HasIndex("ChildProductId");
-
-                    b.ToTable("ProductRelationship");
-                });
-
-            modelBuilder.Entity("KALS.Domain.Entity.Category", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.Category", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -66,7 +51,7 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.ToTable("Category", (string)null);
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.Lab", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.Lab", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -75,8 +60,14 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("ModifiedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ModifiedBy")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -93,7 +84,7 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.ToTable("Lab", (string)null);
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.LabProduct", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.LabProduct", b =>
                 {
                     b.Property<Guid>("LabId")
                         .HasColumnType("uniqueidentifier");
@@ -108,24 +99,21 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.ToTable("LabProduct", (string)null);
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.Member", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.Member", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Address")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("District")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("Province")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
@@ -133,7 +121,6 @@ namespace KALS.DataAccess.Persistent.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Ward")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
@@ -144,22 +131,23 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.ToTable("Member", (string)null);
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.Order", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.Order", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("CreatedAt")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<Guid>("MemberId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("ModifiedAt")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("PaymentId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -172,10 +160,13 @@ namespace KALS.DataAccess.Persistent.Migrations
 
                     b.HasIndex("MemberId");
 
+                    b.HasIndex("PaymentId")
+                        .IsUnique();
+
                     b.ToTable("Order", (string)null);
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.OrderItem", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.OrderItem", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -205,9 +196,10 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.ToTable("OrderItem", (string)null);
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.Payment", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.Payment", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("Amount")
@@ -219,13 +211,13 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.Property<DateTime>("ModifiedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("PaymentDateTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
+                    b.Property<int>("OrderCode")
                         .HasColumnType("int");
 
-                    b.Property<string>("TransactionId")
+                    b.Property<DateTime?>("PaymentDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -234,7 +226,7 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.ToTable("Payment", (string)null);
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.Product", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.Product", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -270,7 +262,7 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.ToTable("Product", (string)null);
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.ProductCategory", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.ProductCategory", b =>
                 {
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
@@ -285,22 +277,22 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.ToTable("ProductCategory", (string)null);
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.Role", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.ProductRelationship", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid>("ParentProductId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid>("ChildProductId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("Id");
+                    b.HasKey("ParentProductId", "ChildProductId");
 
-                    b.ToTable("Role", (string)null);
+                    b.HasIndex("ChildProductId");
+
+                    b.ToTable("ProductRelationship");
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.Staff", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.Staff", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -320,7 +312,7 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.ToTable("Staff", (string)null);
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.SupportMessage", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.SupportMessage", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -351,7 +343,7 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.ToTable("SupportMessage", (string)null);
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.SupportRequest", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.SupportRequest", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -390,7 +382,7 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.ToTable("SupportRequest", (string)null);
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.User", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -411,49 +403,40 @@ namespace KALS.DataAccess.Persistent.Migrations
                         .HasMaxLength(13)
                         .HasColumnType("nvarchar(13)");
 
-                    b.Property<Guid>("RoleId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserName")
+                    b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RoleId");
-
                     b.ToTable("User", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("eebf6e74-47f7-497e-8cb9-ec94c110dd8c"),
+                            FullName = "Admin",
+                            Password = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=",
+                            PhoneNumber = "0123456789",
+                            Role = "Manager",
+                            Username = "admin"
+                        });
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entities.ProductRelationship", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.LabProduct", b =>
                 {
-                    b.HasOne("KALS.Domain.Entity.Product", "ChildProduct")
-                        .WithMany("ParentProducts")
-                        .HasForeignKey("ChildProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("KALS.Domain.Entity.Product", "ParentProduct")
-                        .WithMany("ChildProducts")
-                        .HasForeignKey("ParentProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ChildProduct");
-
-                    b.Navigation("ParentProduct");
-                });
-
-            modelBuilder.Entity("KALS.Domain.Entity.LabProduct", b =>
-                {
-                    b.HasOne("KALS.Domain.Entity.Lab", "Lab")
+                    b.HasOne("KALS.Domain.Entities.Lab", "Lab")
                         .WithMany("LabProducts")
                         .HasForeignKey("LabId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("KALS.Domain.Entity.Product", "Product")
+                    b.HasOne("KALS.Domain.Entities.Product", "Product")
                         .WithMany("LabProducts")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -464,9 +447,9 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.Member", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.Member", b =>
                 {
-                    b.HasOne("KALS.Domain.Entity.User", "User")
+                    b.HasOne("KALS.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -475,26 +458,34 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.Order", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.Order", b =>
                 {
-                    b.HasOne("KALS.Domain.Entity.Member", "Member")
+                    b.HasOne("KALS.Domain.Entities.Member", "Member")
                         .WithMany()
                         .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("KALS.Domain.Entities.Payment", "Payment")
+                        .WithOne("Order")
+                        .HasForeignKey("KALS.Domain.Entities.Order", "PaymentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Member");
+
+                    b.Navigation("Payment");
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.OrderItem", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.OrderItem", b =>
                 {
-                    b.HasOne("KALS.Domain.Entity.Order", "Order")
+                    b.HasOne("KALS.Domain.Entities.Order", "Order")
                         .WithMany()
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("KALS.Domain.Entity.Product", "Product")
+                    b.HasOne("KALS.Domain.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -505,26 +496,15 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.Payment", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.ProductCategory", b =>
                 {
-                    b.HasOne("KALS.Domain.Entity.Order", "Order")
-                        .WithOne("Payment")
-                        .HasForeignKey("KALS.Domain.Entity.Payment", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Order");
-                });
-
-            modelBuilder.Entity("KALS.Domain.Entity.ProductCategory", b =>
-                {
-                    b.HasOne("KALS.Domain.Entity.Category", "Category")
+                    b.HasOne("KALS.Domain.Entities.Category", "Category")
                         .WithMany("ProductCategories")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("KALS.Domain.Entity.Product", "Product")
+                    b.HasOne("KALS.Domain.Entities.Product", "Product")
                         .WithMany("ProductCategories")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -535,9 +515,28 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.Staff", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.ProductRelationship", b =>
                 {
-                    b.HasOne("KALS.Domain.Entity.User", "User")
+                    b.HasOne("KALS.Domain.Entities.Product", "ChildProduct")
+                        .WithMany("ParentProducts")
+                        .HasForeignKey("ChildProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("KALS.Domain.Entities.Product", "ParentProduct")
+                        .WithMany("ChildProducts")
+                        .HasForeignKey("ParentProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ChildProduct");
+
+                    b.Navigation("ParentProduct");
+                });
+
+            modelBuilder.Entity("KALS.Domain.Entities.Staff", b =>
+                {
+                    b.HasOne("KALS.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -546,9 +545,9 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.SupportMessage", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.SupportMessage", b =>
                 {
-                    b.HasOne("KALS.Domain.Entity.SupportRequest", "SupportRequest")
+                    b.HasOne("KALS.Domain.Entities.SupportRequest", "SupportRequest")
                         .WithMany()
                         .HasForeignKey("SupportRequestId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -557,21 +556,21 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.Navigation("SupportRequest");
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.SupportRequest", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.SupportRequest", b =>
                 {
-                    b.HasOne("KALS.Domain.Entity.Lab", "Lab")
+                    b.HasOne("KALS.Domain.Entities.Lab", "Lab")
                         .WithMany()
                         .HasForeignKey("LabId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("KALS.Domain.Entity.Member", "Member")
+                    b.HasOne("KALS.Domain.Entities.Member", "Member")
                         .WithMany()
                         .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("KALS.Domain.Entity.Staff", "Staff")
+                    b.HasOne("KALS.Domain.Entities.Staff", "Staff")
                         .WithMany()
                         .HasForeignKey("StaffId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -584,34 +583,23 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.Navigation("Staff");
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.User", b =>
-                {
-                    b.HasOne("KALS.Domain.Entity.Role", "Role")
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("KALS.Domain.Entity.Category", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.Category", b =>
                 {
                     b.Navigation("ProductCategories");
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.Lab", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.Lab", b =>
                 {
                     b.Navigation("LabProducts");
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.Order", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.Payment", b =>
                 {
-                    b.Navigation("Payment")
+                    b.Navigation("Order")
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entity.Product", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.Product", b =>
                 {
                     b.Navigation("ChildProducts");
 

@@ -6,8 +6,8 @@ namespace KALS.Domain.Entities;
 
 public class Payment: BaseEntity
 {
-    public string TransactionId { get; set; }
-    public DateTime PaymentDateTime { get; set; }
+    public int OrderCode { get; set; } //OrderId of PayOS
+    public DateTime? PaymentDateTime { get; set; }
     public decimal Amount { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime ModifiedAt { get; set; }

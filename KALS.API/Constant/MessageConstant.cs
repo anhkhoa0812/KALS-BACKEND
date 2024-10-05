@@ -11,6 +11,14 @@ public class MessageConstant
         public const string UserNameExisted = "Tên đăng nhập đã tồn tại";
         public const string PhoneNumberExisted = "Số điện thoại đã tồn tại";
         public const string LoginFail = "Đăng nhập không thành công";
+        public const string MemberAddressNotFound = "Địa chỉ thành viên không tồn tại";
+        public const string ForgetPasswordFail = "Quên mật khẩu không thành công";
+        public const string UserIdNotNull = "Id user không được để trống";
+        public const string MemberNotFound = "Thành viên không tồn tại";
+        public const string UpdateMemberFail = "Cập nhật thành viên không thành công";
+        public const string RoleNotFound = "Role không tồn tại";
+        public const string StaffNotFound = "Staff không tồn tại";
+        public const string UpdateStaffFail = "Cập nhật staff không thành công";
     }
 
     public static class Order
@@ -59,5 +67,25 @@ public class MessageConstant
         public const string OtpAlreadySent = "Mã OTP đã được gửi";
         public const string OtpNotFound = "Mã OTP không tồn tại";
         public const string OtpIncorrect = "Mã OTP không chính xác";
+    }
+
+    public static class Payment
+    {
+        public const string YourOrderIsPaid = "Đơn hàng của bạn đã được thanh toán";
+        public const string YourOrderIsCancelled = "Đơn hàng của bạn đã bị hủy";
+        public const string CannotFindPaymentLinkInformation = "Không thể tìm thấy thông tin link thanh toán";
+        public const string YourOrderIsNotPaid = "Đơn hàng của bạn chưa được thanh toán";
+        public const string CannotUpdateStatusPaymentAndOrder = "Không thể cập nhật trạng thái thanh toán và đơn hàng";
+        public const string UpdateStatusPaymentAndOrderFail = "Cập nhật trạng thái thanh toán và đơn hàng không thành công";
+        public const string PaymentNotFound = "Thanh toán không tồn tại";
+        public const string OrderCodeNotNull = "OrderCode không được để trống";
+        public const string CreatePaymentFail = "Tạo thanh toán không thành công";
+        public const string FailToCreatePaymentLink = "Tạo link thanh toán không thành công";
+        public const string PayOsStatusNotTrue = "Trạng thái thanh toán của PayOs không hợp lệ";
+    }
+
+    public static class OrderItem
+    {
+        public const string CreateOrderItemFail = "Tạo order item không thành công";
     }
 }

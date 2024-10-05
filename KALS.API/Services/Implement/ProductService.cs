@@ -1,6 +1,7 @@
 using AutoMapper;
 using KALS.API.Constant;
 using KALS.API.Models.Category;
+using KALS.API.Models.Filter;
 using KALS.API.Models.Product;
 using KALS.API.Services.Interface;
 using KALS.API.Utils;

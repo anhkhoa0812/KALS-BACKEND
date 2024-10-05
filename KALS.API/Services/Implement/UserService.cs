@@ -1,6 +1,7 @@
 using AutoMapper;
 using KALS.API.Constant;
 using KALS.API.Models;
+using KALS.API.Models.Filter;
 using KALS.API.Models.Sms;
 using KALS.API.Models.User;
 using KALS.API.Services.Interface;
@@ -8,7 +9,9 @@ using KALS.API.Utils;
 using KALS.Domain.DataAccess;
 using KALS.Domain.Entities;
 using KALS.Domain.Enums;
+using KALS.Domain.Paginate;
 using KALS.Repository.Interface;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using StackExchange.Redis;
 using BadHttpRequestException = Microsoft.AspNetCore.Http.BadHttpRequestException;
@@ -37,6 +40,7 @@ public class UserService : BaseService<UserService>, IUserService
             Id = user.Id,
             Username = user.Username,
             FullName = user.FullName, 
+            PhoneNumber = user.PhoneNumber,
             Token = token,
             RefreshToken = refreshToken
         };
@@ -99,5 +103,120 @@ public class UserService : BaseService<UserService>, IUserService
         
         await db.StringSetAsync(key, otp, TimeSpan.FromMinutes(2));
         return request.PhoneNumber;
+    }
+
+    public async Task<UserResponse> ForgetPassword(ForgetPasswordRequest request)
+    {
+        var user = await _unitOfWork.GetRepository<User>().SingleOrDefaultAsync(
+            predicate: u => u.PhoneNumber == request.PhoneNumber
+        );
+        if (user == null) throw new BadHttpRequestException(MessageConstant.User.UserNotFound);
+        var redis = ConnectionMultiplexer.Connect(_configuration.GetConnectionString("Redis"));
+        var db = redis.GetDatabase();
+        var key = request.PhoneNumber;
+        var existingOtp = db.StringGet(key);
+        
+        if (existingOtp.IsNullOrEmpty) throw new BadHttpRequestException(MessageConstant.Sms.OtpNotFound);
+        if (existingOtp != request.Otp) throw new BadHttpRequestException(MessageConstant.Sms.OtpIncorrect);
+        
+        user.Password = PasswordUtil.HashPassword(request.Password);
+        _unitOfWork.GetRepository<User>().UpdateAsync(user);
+        UserResponse response = null;
+        var isSuccess = await _unitOfWork.CommitAsync() > 0;
+        if (isSuccess) response = _mapper.Map<UserResponse>(user);
+        return response;
+    }
+
+    public async Task<IPaginate<MemberResponse>> GetMembersAsync(int page, int size, MemberFilter filter, string sortBy, bool isAsc)
+    {
+        var members = await _unitOfWork.GetRepository<Member>().GetPagingListAsync(
+            selector: m => new MemberResponse()
+            {
+                Id = m.Id,
+                UserId = m.User.Id,
+                Username = m.User.Username,
+                FullName = m.User.FullName,
+                PhoneNumber = m.User.PhoneNumber,
+                Ward = m.Ward,
+                District = m.District,
+                Province = m.Province,
+                Address = m.Address
+            },
+            page: page,
+            size: size,
+            filter: filter,
+            include: m => m.Include(m => m.User),
+            sortBy: sortBy,
+            isAsc: isAsc
+        );
+        return members;
+    }
+
+    public Task<IPaginate<StaffResponse>> GetStaffsAsync(int page, int size, StaffFilter filter, string sortBy, bool isAsc)
+    {
+        var staffs = _unitOfWork.GetRepository<Staff>().GetPagingListAsync(
+            selector: s => new StaffResponse()
+            {
+                Id = s.Id,
+                UserId = s.User.Id,
+                Username = s.User.Username,
+                FullName = s.User.FullName,
+                PhoneNumber = s.User.PhoneNumber,
+                Type = s.Type
+            },
+            page: page,
+            size: size,
+            filter: filter,
+            include: s => s.Include(s => s.User),
+            sortBy: sortBy,
+            isAsc: isAsc
+        );
+        return staffs;
+    }
+
+    public async Task<UserResponse> UpdateMemberAsync(Guid id, UpdateMemberRequest request)
+    {
+        if (id == Guid.Empty) throw new BadHttpRequestException(MessageConstant.User.UserIdNotNull);
+        var member = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
+            predicate: m => m.UserId == id,
+            include: m => m.Include(m => m.User)
+        );
+        if (member == null) throw new BadHttpRequestException(MessageConstant.User.MemberNotFound);
+        request.TrimString();
+        member.Ward = string.IsNullOrEmpty(request.Ward) ? member.Ward : request.Ward;
+        member.Province = string.IsNullOrEmpty(request.Province) ? member.Province : request.Province;
+        member.District = string.IsNullOrEmpty(request.District) ? member.District : request.District;
+        member.Address = string.IsNullOrEmpty(request.Address) ? member.Address : request.Address;
+        member.User.Username = string.IsNullOrEmpty(request.Username) ? member.User.Username : request.Username;
+        member.User.Password = string.IsNullOrEmpty(request.Password) ? member.User.Password : PasswordUtil.HashPassword(request.Password);
+        member.User.FullName = string.IsNullOrEmpty(request.FullName) ? member.User.FullName : request.FullName;
+        
+        _unitOfWork.GetRepository<Member>().UpdateAsync(member);
+        var isSuccess = await _unitOfWork.CommitAsync() > 0;
+        UserResponse response = null;
+        if (isSuccess) response = _mapper.Map<UserResponse>(member.User);
+        return response;
+
+    }
+
+    public async Task<UserResponse> UpdateStaffAsync(Guid id, UpdateStaffRequest request)
+    {
+        if (id == Guid.Empty) throw new BadHttpRequestException(MessageConstant.User.UserIdNotNull);
+        var staff = await _unitOfWork.GetRepository<Staff>().SingleOrDefaultAsync(
+            predicate: s => s.UserId == id,
+            include: s => s.Include(s => s.User)
+        );
+        if (staff == null) throw new BadHttpRequestException(MessageConstant.User.StaffNotFound);
+        request.TrimString();
+        staff.Type = (StaffType)(!request.Type.HasValue ? staff.Type : request.Type);
+        staff.User.Username = string.IsNullOrEmpty(request.Username) ? staff.User.Username : request.Username;
+        staff.User.Password = string.IsNullOrEmpty(request.Password) ? staff.User.Password : PasswordUtil.HashPassword(request.Password);
+        staff.User.FullName = string.IsNullOrEmpty(request.FullName) ? staff.User.FullName : request.FullName;
+        
+        _unitOfWork.GetRepository<Staff>().UpdateAsync(staff);
+        var isSuccess = await _unitOfWork.CommitAsync() > 0;
+        UserResponse response = null;
+        if (isSuccess) response = _mapper.Map<UserResponse>(staff.User);
+        return response;
     }
 }

@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using KALS.Repository.Interface;
 
-namespace KALS.API.Models.Product;
+namespace KALS.API.Models.Filter;
 
 public class ProductFilter: IFilter<Domain.Entities.Product>
 {

@@ -44,9 +44,28 @@ public class ApiEndPointConstant
         public const string SendOtp = ApiEndpoint + "/otp";
         public const string Signup = ApiEndpoint + "/signup";
         public const string Login = ApiEndpoint + "/login";
+        public const string ForgetPassword = ApiEndpoint + "/forget-password";
     }
     public class Payment
     {
         public const string PaymentEndPoint = ApiEndpoint + "/payments";
+        public const string PaymentCheckOut = PaymentEndPoint + "/checkout";
+    }
+
+    public class Staff
+    {
+        public const string StaffEndpoint = ApiEndpoint + "/staffs";
+        public const string StaffById = StaffEndpoint + "/{id}";
+    }
+
+    public class Member
+    {
+        public const string MemberEndpoint = ApiEndpoint + "/members";
+        public const string MemberById = MemberEndpoint + "/{id}";
+    }
+    public class Order
+    {
+        public const string OrderEndpoint = ApiEndpoint + "/orders";
+        public const string OrderById = OrderEndpoint + "/{id}";
     }
 }

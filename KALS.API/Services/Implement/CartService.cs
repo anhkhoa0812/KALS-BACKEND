@@ -20,7 +20,7 @@ public class CartService: BaseService<CartService>, ICartService
 
     public async Task<ICollection<CartModelResponse>> AddToCartAsync(CartModel request)
     {
-        var userId = JwtUtil.GetUserIdFromToken(_httpContextAccessor);
+        var userId = GetUserIdFromJwt();
         if (userId == Guid.Empty) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
         var user = await _unitOfWork.GetRepository<User>().SingleOrDefaultAsync(
             predicate:x => x.Id == userId
@@ -66,7 +66,7 @@ public class CartService: BaseService<CartService>, ICartService
 
     public async Task<ICollection<CartModelResponse>> GetCartAsync()
     {
-        var userId = JwtUtil.GetUserIdFromToken(_httpContextAccessor);
+        var userId = GetUserIdFromJwt();
         if (userId == Guid.Empty) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
         var redis = ConnectionMultiplexer.Connect(_configuration.GetConnectionString("Redis"));
         var db = redis.GetDatabase();
@@ -84,7 +84,7 @@ public class CartService: BaseService<CartService>, ICartService
 
     public async Task<ICollection<CartModelResponse>> RemoveFromCartAsync(Guid productId)
     {
-        var userId = JwtUtil.GetUserIdFromToken(_httpContextAccessor);
+        var userId = GetUserIdFromJwt();
         if (userId == Guid.Empty) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
 
         if (productId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.Product.ProductIdNotNull);
@@ -120,7 +120,7 @@ public class CartService: BaseService<CartService>, ICartService
         if (request.ProductId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.Product.ProductIdNotNull);
         if (request.Quantity <= 0) throw new BadHttpRequestException(MessageConstant.Cart.QuantityMustBeGreaterThanZero);
         
-        var userId = JwtUtil.GetUserIdFromToken(_httpContextAccessor);
+        var userId = GetUserIdFromJwt();
         if (userId == Guid.Empty) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
         
         var product = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(

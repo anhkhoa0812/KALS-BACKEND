@@ -1,3 +1,4 @@
+using KALS.API.Models.Filter;
 using KALS.API.Models.Product;
 using KALS.Domain.Paginate;
 

@@ -56,5 +56,18 @@ public class AuthController: BaseController<AuthController>
         _logger.LogInformation($"Login successful with {loginRequest.UsernameOrPhoneNumber}");
         return Ok(loginResponse);
     }
-    
+    [HttpPatch(ApiEndPointConstant.Auth.ForgetPassword)]
+    [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ForgetPassword([FromBody] ForgetPasswordRequest forgetPasswordRequest)
+    {
+        var userResponse = await _userService.ForgetPassword(forgetPasswordRequest);
+        if (userResponse == null)
+        {
+            _logger.LogError($"Forget password failed with {forgetPasswordRequest.PhoneNumber}");
+            return Problem(MessageConstant.User.ForgetPasswordFail);
+        }
+        _logger.LogInformation($"Forget password successful with {forgetPasswordRequest.PhoneNumber}");
+        return Ok(userResponse);
+    }
 }

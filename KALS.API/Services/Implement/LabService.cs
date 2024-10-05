@@ -141,7 +141,7 @@ public class LabService: BaseService<LabService>, ILabService
 
     public async Task<LabResponse> CreateLabAsync(CreateLabRequest request)
     {
-        var userId = JwtUtil.GetUserIdFromToken(_httpContextAccessor);
+        var userId = GetUserIdFromJwt();
         if (userId == Guid.Empty) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
         var user = await _unitOfWork.GetRepository<User>().SingleOrDefaultAsync(
             predicate: u => u.Id == userId

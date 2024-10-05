@@ -157,6 +157,9 @@ namespace KALS.DataAccess.Persistent.Migrations
 
                     b.HasIndex("MemberId");
 
+                    b.HasIndex("PaymentId")
+                        .IsUnique();
+
                     b.ToTable("Order", (string)null);
                 });
 
@@ -193,6 +196,7 @@ namespace KALS.DataAccess.Persistent.Migrations
             modelBuilder.Entity("KALS.Domain.Entities.Payment", b =>
                 {
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("Amount")
@@ -204,14 +208,13 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.Property<DateTime>("ModifiedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("PaymentDateTime")
+                    b.Property<int>("OrderCode")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("PaymentDateTime")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TransactionId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -413,7 +416,7 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("1d3d3b99-d7cb-40f7-baba-e5eeb71f4d66"),
+                            Id = new Guid("eebf6e74-47f7-497e-8cb9-ec94c110dd8c"),
                             FullName = "Admin",
                             Password = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=",
                             PhoneNumber = "0123456789",
@@ -460,7 +463,15 @@ namespace KALS.DataAccess.Persistent.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("KALS.Domain.Entities.Payment", "Payment")
+                        .WithOne("Order")
+                        .HasForeignKey("KALS.Domain.Entities.Order", "PaymentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Member");
+
+                    b.Navigation("Payment");
                 });
 
             modelBuilder.Entity("KALS.Domain.Entities.OrderItem", b =>
@@ -480,17 +491,6 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.Navigation("Order");
 
                     b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("KALS.Domain.Entities.Payment", b =>
-                {
-                    b.HasOne("KALS.Domain.Entities.Order", "Order")
-                        .WithOne("Payment")
-                        .HasForeignKey("KALS.Domain.Entities.Payment", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("KALS.Domain.Entities.ProductCategory", b =>
@@ -590,9 +590,9 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.Navigation("LabProducts");
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entities.Order", b =>
+            modelBuilder.Entity("KALS.Domain.Entities.Payment", b =>
                 {
-                    b.Navigation("Payment")
+                    b.Navigation("Order")
                         .IsRequired();
                 });
 

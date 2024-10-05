@@ -17,11 +17,4 @@ public class UserController: BaseController<UserController>
         _userService = userService;
     }
     
-    [HttpPost(ApiEndPointConstant.User.Login)]
-    [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
-    public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request)
-    {
-        var response = await _userService.LoginAsync(request);
-        return Ok(response);
-    }
 }

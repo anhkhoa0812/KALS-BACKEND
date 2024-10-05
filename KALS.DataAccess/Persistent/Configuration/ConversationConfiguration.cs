@@ -48,5 +48,21 @@ public class OrderConfiguration: IEntityTypeConfiguration<Order>
                 v => v.ToString(),
                 v => (OrderStatus)Enum.Parse(typeof(OrderStatus), v)
             );
+        builder.HasOne(o => o.Payment)
+            .WithOne(p => p.Order)
+            .HasForeignKey<Order>(p => p.PaymentId);
     }
 }
+
+public class StaffConfiguration: IEntityTypeConfiguration<Staff>
+{
+    public void Configure(EntityTypeBuilder<Staff> builder)
+    {
+        builder.Property(s => s.Type)
+            .HasConversion(
+                s => s.ToString(),
+                s => (StaffType)Enum.Parse(typeof(StaffType), s)
+            );
+    }
+}
+
