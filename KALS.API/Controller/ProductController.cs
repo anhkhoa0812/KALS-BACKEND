@@ -34,9 +34,9 @@ public class ProductController : BaseController<ProductController>
         return Ok(response);
     }
     [HttpPost(ApiEndPointConstant.Product.ProductEndpoint)]
-    [ProducesResponseType(typeof(GetProductResponse), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(GetProductResponse), statusCode: StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> CreateProduct([FromBody] CreateProductRequest request)
+    public async Task<IActionResult> CreateProduct([FromForm] CreateProductRequest request)
     {
         var response = await _productService.CreateProductAsync(request);
         if (response == null)

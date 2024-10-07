@@ -17,4 +17,6 @@ public class Member : BaseEntity
     public string? Ward { get; set; }
     [MaxLength(500)]
     public string? Address { get; set; }
+    
+    public virtual ICollection<LabMember>? LabMembers { get; set; }
 }

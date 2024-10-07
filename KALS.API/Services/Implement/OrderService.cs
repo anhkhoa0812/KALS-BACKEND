@@ -74,4 +74,61 @@ public class OrderService: BaseService<OrderService>, IOrderService
         }
         return orders;
     }
+
+    public async Task<OrderResponse> UpdateOrderStatusCompleted(Guid orderId)
+    {
+        if (orderId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.Order.OrderIdNotNull);
+        var order = await _unitOfWork.GetRepository<Order>().SingleOrDefaultAsync(
+            predicate: o => o.Id == orderId
+        );
+        if (order == null) throw new BadHttpRequestException(MessageConstant.Order.OrderNotFound);
+
+        switch (order.Status)
+        {
+            case OrderStatus.Pending:
+                throw new BadHttpRequestException(MessageConstant.Payment.YourOrderIsNotPaid);
+            case OrderStatus.Cancelled:
+                throw new BadHttpRequestException(MessageConstant.Payment.YourOrderIsCancelled);
+            case OrderStatus.Completed:
+                throw new BadHttpRequestException(MessageConstant.Payment.YourOrderIsCompleted);
+            case OrderStatus.Processing:
+                order.Status = order.Status = OrderStatus.Completed;
+                break;
+            default:
+                throw new BadHttpRequestException(MessageConstant.Order.OrderStatusNotFound);
+        }
+        
+        var orderItems = await _unitOfWork.GetRepository<OrderItem>().GetListAsync(
+            predicate: oi => oi.OrderId == orderId
+        );
+        foreach (var orderItem in orderItems)
+        {
+            var product = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
+                predicate: p => p.Id == orderItem.ProductId,
+                include: p => p.Include(p => p.LabProducts)
+                    .ThenInclude(lp => lp.Lab)
+            );
+            if (product == null) throw new BadHttpRequestException(MessageConstant.Product.ProductNotFound);
+            product.LabProducts!.ToList().ForEach(async lp =>
+            {
+                var existedLabMember = await _unitOfWork.GetRepository<LabMember>().SingleOrDefaultAsync(
+                    predicate: lm => lm.LabId == lp.LabId && lm.MemberId == order.MemberId
+                );
+                if (existedLabMember != null) return;
+                await _unitOfWork.GetRepository<LabMember>().InsertAsync(new LabMember()
+                {
+                    MemberId = order.MemberId,
+                    LabId = lp.LabId
+                });
+                var isSuccess = await _unitOfWork.CommitAsync() > 0;
+                if (!isSuccess) throw new BadHttpRequestException(MessageConstant.Product.UpdateProductFail);
+            }); 
+            
+        }
+        _unitOfWork.GetRepository<Order>().UpdateAsync(order);
+        var isSuccess = await _unitOfWork.CommitAsync() > 0;
+        OrderResponse response = null;
+        if (isSuccess) response = _mapper.Map<OrderResponse>(order);
+        return response;
+    }
 }

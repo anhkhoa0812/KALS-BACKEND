@@ -14,4 +14,6 @@ public class GetProductWithCatogoriesResponse
     public DateTime ModifiedAt { get; set; }
     public bool IsHidden { get; set; }
     public ICollection<CategoryResponse> Categories { get; set; }
+    
+    public ICollection<ProductImageResponse> ProductImages { get; set; }
 }

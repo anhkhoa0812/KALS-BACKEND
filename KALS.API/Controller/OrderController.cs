@@ -26,4 +26,18 @@ public class OrderController: BaseController<OrderController>
         var result = await _orderService.GetOrderList(page, size, filter, sortBy, isAsc);
         return Ok(result);
     }
+    [HttpPatch(ApiEndPointConstant.Order.UpdateOrderStatus)]
+    [ProducesResponseType(typeof(OrderResponse), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateOrderStatusCompleted(Guid id)
+    {
+        var result = await _orderService.UpdateOrderStatusCompleted(id);
+        if (result == null)
+        {
+            _logger.LogError($"Update order status completed failed with {id}");
+            return Problem($"{MessageConstant.Order.UpdateOrderStatusFail}: {id}");
+        }
+        _logger.LogInformation($"Update order status completed successful with {id}");
+        return Ok(result);
+    }
 }

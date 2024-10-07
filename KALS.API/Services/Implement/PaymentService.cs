@@ -33,7 +33,7 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
             predicate: m => m.UserId == userId,
             include: m => m.Include(m => m.User)
         );
-        if (member == null) throw new BadHttpRequestException(MessageConstant.User.UserNotFound);
+        if (member == null) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
         // if( member.Ward == null || member.Province == null || member.District == null || member.Address == null) 
         //     throw new BadHttpRequestException(MessageConstant.User.MemberAddressNotFound);
         var order = new Order()
@@ -56,6 +56,7 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
                 predicate: p => p.Id == cartModel.ProductId
             );
             if (product == null) throw new BadHttpRequestException(MessageConstant.Product.ProductNotFound);
+            if (product.Quantity < cartModel.Quantity) throw new BadHttpRequestException(MessageConstant.Product.ProductOutOfStock);
             var orderItem = new OrderItem()
             {
                 Id = Guid.NewGuid(),
@@ -111,25 +112,11 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
             buyerPhone: member.User.PhoneNumber,
             expiredAt: ((DateTimeOffset) TimeUtil.GetCurrentSEATime().AddMinutes(10)).ToUnixTimeSeconds()
         );
-
+        
         // Call the external payment service to create a payment link
         CreatePaymentResult createPayment = await _payOs.createPaymentLink(paymentData);
 
         return createPayment.checkoutUrl;
-            
-    
-        // await _unitOfWork.GetRepository<Payment>().InsertAsync(payment);
-        // order.Total = orderItems.Sum(oi => oi.Product.Price * oi.Quantity);
-        // await _unitOfWork.GetRepository<Order>().InsertAsync(order);
-        // await _unitOfWork.GetRepository<OrderItem>().InsertRangeAsync(orderItems);
-        // bool isSuccess = await _unitOfWork.CommitAsync() > 0;
-        // if (!isSuccess) throw new BadHttpRequestException(MessageConstant.Order.CreateOrderFail);
-        //
-        // PaymentData paymentData = new PaymentData(orderCode, (int) order.Total, "Thanh toan don hang", items, "https://localhost:3002/cancel", "https://localhost:3002/success");
-        //
-        // CreatePaymentResult createPayment = await _payOs.createPaymentLink(paymentData);
-        //
-        // return createPayment.checkoutUrl;
     }
 
     public async Task<PaymentWithOrderResponse> HandlePayment(UpdatePaymentOrderStatusRequest request)
@@ -165,6 +152,15 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
                 payment.Order.Status = OrderStatus.Processing;
                 payment.Order.ModifiedAt = TimeUtil.GetCurrentSEATime();
                 _unitOfWork.GetRepository<Payment>().UpdateAsync(payment);
+                var orderItems = await _unitOfWork.GetRepository<OrderItem>().GetListAsync(
+                    predicate: oi => oi.OrderId == payment.Order.Id,
+                    include: oi => oi.Include(oi => oi.Product)
+                );
+                foreach (var orderItem in orderItems)
+                {
+                    orderItem.Product.Quantity -= orderItem.Quantity;
+                }
+                _unitOfWork.GetRepository<OrderItem>().UpdateRangeAsync(orderItems);
                 break;
             case PayOsStatus.EXPIRED:
             case PayOsStatus.CANCELLED:
@@ -183,6 +179,5 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
         PaymentWithOrderResponse response = null;
         if (isSuccess) response = _mapper.Map<PaymentWithOrderResponse>(payment);
         return response;
-        
     }
 }

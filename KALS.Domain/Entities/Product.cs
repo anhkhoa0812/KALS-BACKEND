@@ -20,6 +20,6 @@ public class Product: BaseEntity
     public virtual ICollection<ProductRelationship>? ParentProducts { get; set; } 
     public virtual ICollection<ProductRelationship>? ChildProducts { get; set; } 
     public virtual ICollection<LabProduct>? LabProducts { get; set; }
-    
     public virtual ICollection<ProductCategory>? ProductCategories { get; set; }
+    public virtual ICollection<ProductImage>? ProductImages { get; set; }
 }

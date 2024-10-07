@@ -27,6 +27,7 @@ public class KitAndLabDbContext : DbContext
     public DbSet<OrderItem> OrderItem { get; set; }
     public DbSet<SupportRequest> SupportRequest { get; set; }
     public DbSet<SupportMessage> SupportMessage { get; set; }
+    public DbSet<ProductImage> ProductImage { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -45,6 +46,7 @@ public class KitAndLabDbContext : DbContext
         modelBuilder.Entity<OrderItem>().ToTable("OrderItem");
         modelBuilder.Entity<SupportRequest>().ToTable("SupportRequest");
         modelBuilder.Entity<SupportMessage>().ToTable("SupportMessage");
+        modelBuilder.Entity<ProductImage>().ToTable("ProductImage");
     }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

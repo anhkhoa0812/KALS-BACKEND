@@ -9,4 +9,7 @@ public class CreateProductRequest
     public bool IsKit { get; set; }
     public List<Guid>? ChildProductIds { get; set; }
     public List<Guid>? CategoryIds { get; set; }
+    
+    public IFormFile MainImage { get; set; }
+    public List<IFormFile>? SecondaryImages { get; set; }
 }

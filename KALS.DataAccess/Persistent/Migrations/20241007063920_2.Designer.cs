@@ -4,6 +4,7 @@ using KALS.Domain.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KALS.DataAccess.Persistent.Migrations
 {
     [DbContext(typeof(KitAndLabDbContext))]
-    partial class KitAndLabDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241007063920_2")]
+    partial class _2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -289,29 +292,6 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.ToTable("ProductCategory", (string)null);
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entities.ProductImage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("isMain")
-                        .HasColumnType("bit");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("ProductImage", (string)null);
-                });
-
             modelBuilder.Entity("KALS.Domain.Entities.ProductRelationship", b =>
                 {
                     b.Property<Guid>("ParentProductId")
@@ -454,7 +434,7 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("6a4f0938-1a2b-43b1-9602-e5fad506876c"),
+                            Id = new Guid("9c7d3ad0-c642-436c-8f18-07b3f1427f92"),
                             FullName = "Admin",
                             Password = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=",
                             PhoneNumber = "0123456789",
@@ -569,17 +549,6 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("KALS.Domain.Entities.ProductImage", b =>
-                {
-                    b.HasOne("KALS.Domain.Entities.Product", "Product")
-                        .WithMany("ProductImages")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-                });
-
             modelBuilder.Entity("KALS.Domain.Entities.ProductRelationship", b =>
                 {
                     b.HasOne("KALS.Domain.Entities.Product", "ChildProduct")
@@ -680,8 +649,6 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.Navigation("ParentProducts");
 
                     b.Navigation("ProductCategories");
-
-                    b.Navigation("ProductImages");
                 });
 #pragma warning restore 612, 618
         }

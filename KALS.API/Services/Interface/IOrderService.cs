@@ -7,4 +7,6 @@ namespace KALS.API.Services.Interface;
 public interface IOrderService
 {
     Task<IPaginate<OrderResponse>> GetOrderList(int page, int size, OrderFilter? filter, string? sortBy, bool isAsc);
+    
+    Task<OrderResponse> UpdateOrderStatusCompleted(Guid orderId);
 }

@@ -24,6 +24,10 @@ public class MessageConstant
     public static class Order
     {
         public const string CreateOrderFail = "Tạo đơn hàng không thành công";
+        public const string OrderIdNotNull = "Id đơn hàng không được để trống";
+        public const string OrderNotFound = "Đơn hàng không tồn tại";
+        public const string OrderStatusNotFound = "Trạng thái đơn hàng không tồn tại";
+        public const string UpdateOrderStatusFail = "Cập nhật trạng thái đơn hàng không thành công";
     }
     public static class Product
     {
@@ -35,6 +39,7 @@ public class MessageConstant
         public const string UpdateProductRelationshipFail = "Cập nhật quan hệ sản phẩm không thành công";
         public const string ParentProductIdNotNull = "Id của sản phẩm kit không được để trống";
         public const string ChildProductIdNotNull = "Id của sản phẩm con không được để trống";
+        public const string ProductOutOfStock = "Sản phẩm đã hết hàng";
     }
     public static class Lab
     {
@@ -73,8 +78,9 @@ public class MessageConstant
     {
         public const string YourOrderIsPaid = "Đơn hàng của bạn đã được thanh toán";
         public const string YourOrderIsCancelled = "Đơn hàng của bạn đã bị hủy";
+        public const string YourOrderIsCompleted = "Đơn hàng của bạn đã hoàn thành";
         public const string CannotFindPaymentLinkInformation = "Không thể tìm thấy thông tin link thanh toán";
-        public const string YourOrderIsNotPaid = "Đơn hàng của bạn chưa được thanh toán";
+        public const string YourOrderIsNotPaid = "Đơn hàng chưa được thanh toán";
         public const string CannotUpdateStatusPaymentAndOrder = "Không thể cập nhật trạng thái thanh toán và đơn hàng";
         public const string UpdateStatusPaymentAndOrderFail = "Cập nhật trạng thái thanh toán và đơn hàng không thành công";
         public const string PaymentNotFound = "Thanh toán không tồn tại";

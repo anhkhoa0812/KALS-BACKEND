@@ -4,6 +4,7 @@ using KALS.Domain.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KALS.DataAccess.Persistent.Migrations
 {
     [DbContext(typeof(KitAndLabDbContext))]
-    partial class KitAndLabDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241007101403_3")]
+    partial class _3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -302,9 +305,6 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("isMain")
-                        .HasColumnType("bit");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
@@ -454,7 +454,7 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("6a4f0938-1a2b-43b1-9602-e5fad506876c"),
+                            Id = new Guid("6dba5cca-0e0a-43de-8186-954a5f3bf593"),
                             FullName = "Admin",
                             Password = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=",
                             PhoneNumber = "0123456789",

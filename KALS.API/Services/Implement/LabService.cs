@@ -7,6 +7,7 @@ using KALS.API.Services.Interface;
 using KALS.API.Utils;
 using KALS.Domain.DataAccess;
 using KALS.Domain.Entities;
+using KALS.Domain.Enums;
 using KALS.Domain.Paginate;
 using KALS.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -68,22 +69,59 @@ public class LabService: BaseService<LabService>, ILabService
 
     public async Task<IPaginate<LabResponse>> GetLabsAsync(int page, int size, string? searchName)
     {
-        var labs = await _unitOfWork.GetRepository<Lab>().GetPagingListAsync(
-            selector: l => new LabResponse()
-            {
-                Id = l.Id,
-                Name = l.Name,
-                Url = l.Url,
-                CreatedAt = l.CreatedAt,
-                ModifiedAt = l.ModifiedAt,
-                CreatedBy = l.CreatedBy,
-                ModifiedBy = l.ModifiedBy,
-            },
-            predicate: l => (searchName.IsNullOrEmpty() || l.Name.Contains(searchName!)),
-            page: page,
-            size: size,
-            orderBy: l => l.OrderByDescending(l => l.CreatedAt)
-        );
+        var roleUser = GetRoleFromJwt();
+        if (roleUser == null) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
+        var roleUserEnum = EnumUtil.ParseEnum<RoleEnum>(roleUser);
+        IPaginate<LabResponse> labs;
+        switch (roleUserEnum)
+        {
+            case RoleEnum.Member:
+                var userId = GetUserIdFromJwt();
+                if (userId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.User.UserNotFound);
+                var member = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
+                    predicate: m => m.UserId == userId
+                );
+                if (member == null) throw new BadHttpRequestException(MessageConstant.User.MemberNotFound);
+                labs = await _unitOfWork.GetRepository<Lab>().GetPagingListAsync(
+                    selector: l => new LabResponse()
+                    {
+                        Id = l.Id,
+                        Name = l.Name,
+                        Url = l.Url,
+                        CreatedAt = l.CreatedAt,
+                        CreatedBy = l.CreatedBy,
+                        ModifiedAt = l.ModifiedAt,
+                        ModifiedBy = l.ModifiedBy,
+                    },
+                    predicate: l => l.LabMembers!.Any(lm => lm.MemberId.Equals(member.Id)) && 
+                                    (searchName.IsNullOrEmpty() || l.Name.Contains(searchName!)),
+                    page: page,
+                    size: size,
+                    orderBy: l => l.OrderByDescending(l => l.CreatedAt)
+                );
+                break;
+            case RoleEnum.Manager:
+            case RoleEnum.Staff:
+                labs = await _unitOfWork.GetRepository<Lab>().GetPagingListAsync(
+                    selector: l => new LabResponse()
+                    {
+                        Id = l.Id,
+                        Name = l.Name,
+                        Url = l.Url,
+                        CreatedAt = l.CreatedAt,
+                        ModifiedAt = l.ModifiedAt,
+                        CreatedBy = l.CreatedBy,
+                        ModifiedBy = l.ModifiedBy,
+                    },
+                    predicate: l => (searchName.IsNullOrEmpty() || l.Name.Contains(searchName!)),
+                    page: page,
+                    size: size,
+                    orderBy: l => l.OrderByDescending(l => l.CreatedAt)
+                );
+                break;
+            default:
+                throw new BadHttpRequestException(MessageConstant.User.RoleNotFound);
+        }
         return labs;
     }
 

@@ -40,7 +40,13 @@ public class ProductService: BaseService<ProductService>, IProductService
                     Description = pc.Category.Description,
                     CreatedAt = pc.Category.CreatedAt,
                     ModifiedAt = pc.Category.ModifiedAt,
-                }).ToList() : null
+                }).ToList() : null,
+                ProductImages = p.ProductImages.Select(pi => new ProductImageResponse()
+                {
+                    Id = pi.Id,
+                    ImageUrl = pi.ImageUrl,
+                    isMain = pi.isMain
+                }).ToList()
             },
             predicate: p => !p.IsHidden,
             // orderBy: p => p.OrderByDescending(p => p.CreatedAt),
@@ -81,6 +87,12 @@ public class ProductService: BaseService<ProductService>, IProductService
                     IsKit = cp.IsKit,
                     CreatedAt = cp.CreatedAt,
                     ModifiedAt = cp.ModifiedAt
+                }).ToList(),
+                ProductImages = p.ProductImages.Select(pi => new ProductImageResponse()
+                {
+                    Id = pi.Id,
+                    ImageUrl = pi.ImageUrl,
+                    isMain = pi.isMain
                 }).ToList()
             },
             predicate: p => p.Id == id,
@@ -96,7 +108,7 @@ public class ProductService: BaseService<ProductService>, IProductService
         product.Id = Guid.NewGuid();
         product.CreatedAt = TimeUtil.GetCurrentSEATime();
         product.ModifiedAt = TimeUtil.GetCurrentSEATime();
-        if (request.ChildProductIds.Any())
+        if (request.ChildProductIds != null)
         {
             foreach (var childProductId in request.ChildProductIds)
             {
@@ -117,7 +129,7 @@ public class ProductService: BaseService<ProductService>, IProductService
             }
         }
 
-        if (request.CategoryIds.Any())
+        if (request.CategoryIds != null)
         {
             foreach (var categoryId in request.CategoryIds)
             {
@@ -139,6 +151,35 @@ public class ProductService: BaseService<ProductService>, IProductService
                 );
             }
         }
+        var mainImageUrl = await FirebaseUtil.UploadFileToFirebase(request.MainImage, _configuration);
+        if (!string.IsNullOrEmpty(mainImageUrl))
+        {
+            await _unitOfWork.GetRepository<ProductImage>().InsertAsync(new ProductImage()
+            {
+                Id = Guid.NewGuid(),
+                ProductId = product.Id,
+                ImageUrl = mainImageUrl,
+                isMain = true
+            });
+        }
+        if (request.SecondaryImages != null)
+        {
+            var imageUrls = await FirebaseUtil.UploadFilesToFirebase(request.SecondaryImages, _configuration);
+            if(imageUrls.Any())
+            {
+                foreach (var imageUrl in imageUrls)
+                {
+                    _logger.LogInformation(imageUrl);
+                    await _unitOfWork.GetRepository<ProductImage>().InsertAsync(new ProductImage()
+                    {
+                        Id = Guid.NewGuid(),
+                        ProductId = product.Id,
+                        ImageUrl = imageUrl,
+                        isMain = false
+                    });
+                }
+            }
+        }
         await _unitOfWork.GetRepository<Product>().InsertAsync(product);
         bool isSuccess = await _unitOfWork.CommitAsync() > 0;
         GetProductResponse productResponse = null;
@@ -158,8 +199,9 @@ public class ProductService: BaseService<ProductService>, IProductService
         product.Price = request.Price;
         product.Quantity = request.Quantity;
         product.IsHidden = request.IsHidden;
-        product.IsHidden = request.IsHidden;
+        product.IsKit = request.IsKit;
         product.ModifiedAt = TimeUtil.GetCurrentSEATime();
+        
         _unitOfWork.GetRepository<Product>().UpdateAsync(product);
         bool isSuccess = await _unitOfWork.CommitAsync() > 0;
         GetProductResponse productResponse = null;
