@@ -140,7 +140,10 @@ public class UserService : BaseService<UserService>, IUserService
                 Ward = m.Ward,
                 District = m.District,
                 Province = m.Province,
-                Address = m.Address
+                Address = m.Address,
+                ProvinceCode = m.ProvinceCode,
+                DistrictCode = m.DistrictCode,
+                WardCode = m.WardCode
             },
             page: page,
             size: size,
@@ -150,6 +153,22 @@ public class UserService : BaseService<UserService>, IUserService
             isAsc: isAsc
         );
         return members;
+    }
+
+    public async Task<MemberResponse> GetMemberInformationAsync()
+    {
+        var userId = GetUserIdFromJwt();
+        if (userId == Guid.Empty) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
+        var member = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
+            predicate: m => m.UserId == userId,
+            include: m => m.Include(m => m.User)
+        );
+        if (member == null) throw new BadHttpRequestException(MessageConstant.User.MemberNotFound);
+        var response = _mapper.Map<MemberResponse>(member);
+        response.Username = member.User.Username;
+        response.FullName = member.User.FullName;
+        response.PhoneNumber = member.User.PhoneNumber;
+        return response;
     }
 
     public Task<IPaginate<StaffResponse>> GetStaffsAsync(int page, int size, StaffFilter filter, string sortBy, bool isAsc)
@@ -174,7 +193,7 @@ public class UserService : BaseService<UserService>, IUserService
         return staffs;
     }
 
-    public async Task<UserResponse> UpdateMemberAsync(Guid id, UpdateMemberRequest request)
+    public async Task<UserResponse> UpdateMemberAsyncByManager(Guid id, UpdateMemberRequest request)
     {
         if (id == Guid.Empty) throw new BadHttpRequestException(MessageConstant.User.UserIdNotNull);
         var member = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
@@ -187,8 +206,10 @@ public class UserService : BaseService<UserService>, IUserService
         member.Province = string.IsNullOrEmpty(request.Province) ? member.Province : request.Province;
         member.District = string.IsNullOrEmpty(request.District) ? member.District : request.District;
         member.Address = string.IsNullOrEmpty(request.Address) ? member.Address : request.Address;
+        member.ProvinceCode = request.ProvinceCode ?? member.ProvinceCode;
+        member.DistrictCode = request.DistrictCode ?? member.DistrictCode;
+        member.WardCode = request.WardCode ?? member.WardCode;
         member.User.Username = string.IsNullOrEmpty(request.Username) ? member.User.Username : request.Username;
-        member.User.Password = string.IsNullOrEmpty(request.Password) ? member.User.Password : PasswordUtil.HashPassword(request.Password);
         member.User.FullName = string.IsNullOrEmpty(request.FullName) ? member.User.FullName : request.FullName;
         
         _unitOfWork.GetRepository<Member>().UpdateAsync(member);
@@ -197,6 +218,33 @@ public class UserService : BaseService<UserService>, IUserService
         if (isSuccess) response = _mapper.Map<UserResponse>(member.User);
         return response;
 
+    }
+
+    public async Task<UserResponse> UpdateMemberAsync(UpdateMemberRequest request)
+    {
+        var userId = GetUserIdFromJwt();
+        if (userId == Guid.Empty) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
+        var member = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
+            predicate: m => m.UserId == userId,
+            include: m => m.Include(m => m.User)
+        );
+        if (member == null) throw new BadHttpRequestException(MessageConstant.User.MemberNotFound);
+        request.TrimString();
+        member.Ward = string.IsNullOrEmpty(request.Ward) ? member.Ward : request.Ward;
+        member.Province = string.IsNullOrEmpty(request.Province) ? member.Province : request.Province;
+        member.District = string.IsNullOrEmpty(request.District) ? member.District : request.District;
+        member.Address = string.IsNullOrEmpty(request.Address) ? member.Address : request.Address;
+        member.ProvinceCode = request.ProvinceCode ?? member.ProvinceCode;
+        member.DistrictCode = request.DistrictCode ?? member.DistrictCode;
+        member.WardCode = request.WardCode ?? member.WardCode;
+        member.User.Username = string.IsNullOrEmpty(request.Username) ? member.User.Username : request.Username;
+        member.User.FullName = string.IsNullOrEmpty(request.FullName) ? member.User.FullName : request.FullName;
+        
+        _unitOfWork.GetRepository<Member>().UpdateAsync(member);
+        var isSuccess = await _unitOfWork.CommitAsync() > 0;
+        UserResponse response = null;
+        if (isSuccess) response = _mapper.Map<UserResponse>(member.User);
+        return response;
     }
 
     public async Task<UserResponse> UpdateStaffAsync(Guid id, UpdateStaffRequest request)

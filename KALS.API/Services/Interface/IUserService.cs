@@ -17,10 +17,12 @@ public interface IUserService
     
     Task<IPaginate<MemberResponse>> GetMembersAsync(int page, int size, MemberFilter filter, string sortBy, bool isAsc);
     
+    Task<MemberResponse> GetMemberInformationAsync();
     Task<IPaginate<StaffResponse>> GetStaffsAsync(int page, int size, StaffFilter filter, string sortBy, bool isAsc);
     
-    Task<UserResponse> UpdateMemberAsync(Guid id, UpdateMemberRequest request);
+    Task<UserResponse> UpdateMemberAsyncByManager(Guid id, UpdateMemberRequest request);
     
+    Task<UserResponse> UpdateMemberAsync(UpdateMemberRequest request);
     Task<UserResponse> UpdateStaffAsync(Guid id, UpdateStaffRequest request);
     
     

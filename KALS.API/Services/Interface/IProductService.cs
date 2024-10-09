@@ -8,10 +8,9 @@ public interface IProductService
 {
     Task<IPaginate<GetProductWithCatogoriesResponse>> GetAllProductPagingAsync(int page, int size, ProductFilter filter, string? sortBy, bool isAsc);
     Task<GetProductDetailResponse> GetProductByIdAsync(Guid id);
-    
     Task<GetProductResponse> CreateProductAsync(CreateProductRequest request);
-    
     Task<GetProductResponse> UpdateProductByIdAsync(Guid id, UpdateProductRequest request);
     Task<GetProductResponse> UpdateProductRelationshipByProductIdAsync(Guid parentId, UpdateChildProductForKitRequest request);
     Task<ICollection<GetProductResponse>> GetChildProductsByParentIdAsync(Guid parentId);
+    Task<IPaginate<GetProductResponse>> GetProductByCategoryIdAsync(Guid categoryId, int page, int size);
 }

@@ -2,6 +2,7 @@ using AutoMapper;
 using KALS.API.Constant;
 using KALS.API.Models.Filter;
 using KALS.API.Models.Order;
+using KALS.API.Models.OrderItem;
 using KALS.API.Services.Interface;
 using KALS.API.Utils;
 using KALS.Domain.DataAccess;
@@ -22,7 +23,7 @@ public class OrderService: BaseService<OrderService>, IOrderService
     public async Task<IPaginate<OrderResponse>> GetOrderList(int page, int size, OrderFilter? filter, string? sortBy, bool isAsc)
     {
         var userId = GetUserIdFromJwt();
-        if (userId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.User.UserNotFound);
+        if (userId == Guid.Empty) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
         var role = GetRoleFromJwt();
 
         RoleEnum roleEnum = EnumUtil.ParseEnum<RoleEnum>(role);
@@ -42,6 +43,7 @@ public class OrderService: BaseService<OrderService>, IOrderService
                         ModifiedAt = o.ModifiedAt,
                         Status = o.Status,
                         Total = o.Total,
+                        Address = o.Address,
                     },
                     predicate: o => o.MemberId == member.Id,
                     page: page,
@@ -61,6 +63,7 @@ public class OrderService: BaseService<OrderService>, IOrderService
                         ModifiedAt = o.ModifiedAt,
                         Status = o.Status,
                         Total = o.Total,
+                        Address = o.Address,
                     },
                     page: page,
                     size: size,
@@ -131,4 +134,15 @@ public class OrderService: BaseService<OrderService>, IOrderService
         if (isSuccess) response = _mapper.Map<OrderResponse>(order);
         return response;
     }
+
+    public async Task<ICollection<OrderItemResponse>> GetOrderItemsByOrderId(Guid orderId)
+    {
+        if (orderId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.Order.OrderIdNotNull);
+        var orderItems = await _unitOfWork.GetRepository<OrderItem>().GetListAsync(
+            predicate: oi => oi.OrderId == orderId,
+            include: oi => oi.Include(oi => oi.Product)
+        );
+        var response = _mapper.Map<ICollection<OrderItemResponse>>(orderItems);
+        return response;
+    } 
 }

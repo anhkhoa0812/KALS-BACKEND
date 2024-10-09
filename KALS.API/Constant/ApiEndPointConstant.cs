@@ -33,6 +33,7 @@ public class ApiEndPointConstant
         public const string CategoryEndPoint = ApiEndpoint + "/categories";
         public const string CategoryById = CategoryEndPoint + "/{id}";
         public const string UpdateProductCategory = CategoryById + "/product-category";
+        public const string ProductByCategoryId = CategoryById + "/product";
     }
     public class Cart
     {
@@ -62,11 +63,13 @@ public class ApiEndPointConstant
     {
         public const string MemberEndpoint = ApiEndpoint + "/members";
         public const string MemberById = MemberEndpoint + "/{id}";
+        public const string MemberInformation = MemberEndpoint + "/information";
     }
     public class Order
     {
         public const string OrderEndpoint = ApiEndpoint + "/orders";
         public const string OrderById = OrderEndpoint + "/{id}";
         public const string UpdateOrderStatus = OrderById + "/status";
+        public const string OrderItems = OrderById + "/order-items";
     }
 }

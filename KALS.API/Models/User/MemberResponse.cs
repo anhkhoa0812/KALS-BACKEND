@@ -11,4 +11,7 @@ public class MemberResponse
     public string? District { get; set; }
     public string? Province { get; set; }
     public string? Address { get; set; }
+    public int? ProvinceCode { get; set; }
+    public int? DistrictCode { get; set; }
+    public int? WardCode { get; set; }
 }

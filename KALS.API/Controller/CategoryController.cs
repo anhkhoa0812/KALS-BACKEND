@@ -1,5 +1,6 @@
 using KALS.API.Constant;
 using KALS.API.Models.Category;
+using KALS.API.Models.Product;
 using KALS.API.Services.Interface;
 using KALS.Domain.Paginate;
 using Microsoft.AspNetCore.Mvc;
@@ -11,9 +12,11 @@ namespace KALS.API.Controller;
 public class CategoryController: BaseController<CategoryController>
 {
     private readonly ICategoryService _categoryService;
-    public CategoryController(ILogger<CategoryController> logger, ICategoryService categoryService) : base(logger)
+    private readonly IProductService _productService;
+    public CategoryController(ILogger<CategoryController> logger, ICategoryService categoryService, IProductService productService) : base(logger)
     {
         _categoryService = categoryService;
+        _productService = productService;
     }
     
     [HttpGet(ApiEndPointConstant.Category.CategoryEndPoint)]
@@ -73,5 +76,13 @@ public class CategoryController: BaseController<CategoryController>
         }
         _logger.LogInformation($"Create new category successful with {request.Name}");
         return CreatedAtAction(nameof(CreateCategory), response);
+    }
+
+    [HttpGet(ApiEndPointConstant.Category.ProductByCategoryId)]
+    [ProducesResponseType(typeof(IPaginate<GetProductResponse>), statusCode: StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetProductsByCategoryId(Guid id = new Guid(), int page = 1, int size = 30)
+    {
+        var response = await _productService.GetProductByCategoryIdAsync(id, page, size);
+        return Ok(response);
     }
 }

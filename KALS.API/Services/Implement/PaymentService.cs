@@ -11,6 +11,9 @@ using KALS.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 using Net.payOS;
 using Net.payOS.Types;
+using Newtonsoft.Json;
+using StackExchange.Redis;
+using Order = KALS.Domain.Entities.Order;
 
 namespace KALS.API.Services.Implement;
 
@@ -22,7 +25,7 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
         
     }
 
-    public async Task<string> CheckOut(ICollection<CartModelResponse> request)
+    public async Task<string> CheckOut(CheckOutRequest request)
     {
         PayOS _payOs = new PayOS(_configuration["PAYOS:PAYOS_CLIENT_ID"] ?? throw new Exception("Cannot find environment"),
             _configuration["PAYOS:PAYOS_API_KEY"] ?? throw new Exception("Cannot find environment"),
@@ -36,6 +39,16 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
         if (member == null) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
         // if( member.Ward == null || member.Province == null || member.District == null || member.Address == null) 
         //     throw new BadHttpRequestException(MessageConstant.User.MemberAddressNotFound);
+        var redis = ConnectionMultiplexer.Connect(_configuration.GetConnectionString("Redis"));
+        var db = redis.GetDatabase();
+        var key = "Cart:" + userId;
+        
+        var cartData = await db.StringGetAsync(key);
+
+        if (cartData.IsNullOrEmpty) throw new BadHttpRequestException(MessageConstant.Cart.CartNotFound);
+        
+        var cart = JsonConvert.DeserializeObject<List<CartModelResponse>>(cartData);
+        
         var order = new Order()
         {
             Id = Guid.NewGuid(),
@@ -50,7 +63,7 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
         List<ItemData> items = new List<ItemData>();
         int orderCode = int.Parse(DateTimeOffset.Now.ToString("ffffff"));
         
-        foreach (var cartModel in request)
+        foreach (var cartModel in cart)
         {
             var product = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
                 predicate: p => p.Id == cartModel.ProductId
@@ -74,7 +87,7 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
         }
 
         order.Total = orderTotal;
-        
+        order.Address = request.Address;
         var payment = new Payment()
         {
             Id = Guid.NewGuid(),

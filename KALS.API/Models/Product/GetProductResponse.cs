@@ -1,3 +1,5 @@
+using KALS.Domain.Entities;
+
 namespace KALS.API.Models.Product;
 
 public class GetProductResponse
@@ -11,5 +13,7 @@ public class GetProductResponse
     public DateTime CreatedAt { get; set; }
     public DateTime ModifiedAt { get; set; }
     public bool IsHidden { get; set; }
+    
+    public ICollection<ProductImageResponse>? ProductImages { get; set; } 
     
 }

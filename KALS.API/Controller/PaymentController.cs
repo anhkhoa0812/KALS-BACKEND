@@ -16,7 +16,7 @@ public class PaymentController: BaseController<PaymentController>
     }
     [HttpPost(ApiEndPointConstant.Payment.PaymentCheckOut)]
     [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status200OK)]
-    public async Task<IActionResult> CheckOut([FromBody] ICollection<CartModelResponse> request)
+    public async Task<IActionResult> CheckOut([FromBody] CheckOutRequest request)
     {
             var result = await _paymentService.CheckOut(request);
             return Ok(result);

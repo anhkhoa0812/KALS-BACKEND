@@ -273,4 +273,34 @@ public class ProductService: BaseService<ProductService>, IProductService
         var childProductResponses = _mapper.Map<ICollection<GetProductResponse>>(childProducts);
         return childProductResponses;
     }
+
+    public async Task<IPaginate<GetProductResponse>> GetProductByCategoryIdAsync(Guid categoryId, int page, int size)
+    {
+        if (categoryId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.Category.CategoryIdNotNull);
+        var products = await _unitOfWork.GetRepository<Product>().GetPagingListAsync(
+            selector: p => new GetProductResponse()
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                Quantity = p.Quantity,
+                Price = p.Price,
+                IsHidden = p.IsHidden,
+                IsKit = p.IsKit,
+                CreatedAt = p.CreatedAt,
+                ModifiedAt = p.ModifiedAt,
+                ProductImages = p.ProductImages.Select(pi => new ProductImageResponse()
+                {
+                    Id = pi.Id,
+                    ImageUrl = pi.ImageUrl,
+                    isMain = pi.isMain
+                }).ToList(),
+            },
+            predicate: p => p.ProductCategories.Any(pc => pc.CategoryId == categoryId),
+            page: page,
+            size: size,
+            include: p => p.Include(p => p.ProductImages)
+        );
+        return products;
+    }
 }

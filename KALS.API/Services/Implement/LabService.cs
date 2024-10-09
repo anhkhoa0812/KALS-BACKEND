@@ -77,7 +77,7 @@ public class LabService: BaseService<LabService>, ILabService
         {
             case RoleEnum.Member:
                 var userId = GetUserIdFromJwt();
-                if (userId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.User.UserNotFound);
+                if (userId == Guid.Empty) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
                 var member = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
                     predicate: m => m.UserId == userId
                 );

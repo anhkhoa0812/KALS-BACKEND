@@ -1,6 +1,7 @@
 using KALS.API.Constant;
 using KALS.API.Models.Filter;
 using KALS.API.Models.Order;
+using KALS.API.Models.OrderItem;
 using KALS.API.Services.Implement;
 using KALS.API.Services.Interface;
 using KALS.Domain.Paginate;
@@ -38,6 +39,13 @@ public class OrderController: BaseController<OrderController>
             return Problem($"{MessageConstant.Order.UpdateOrderStatusFail}: {id}");
         }
         _logger.LogInformation($"Update order status completed successful with {id}");
+        return Ok(result);
+    }
+    [HttpGet(ApiEndPointConstant.Order.OrderItems)]
+    [ProducesResponseType(typeof(ICollection<OrderItemResponse>), statusCode: StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetOrderItemsByOrderId(Guid id)
+    {
+        var result = await _orderService.GetOrderItemsByOrderId(id);
         return Ok(result);
     }
 }

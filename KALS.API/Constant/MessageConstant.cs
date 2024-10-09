@@ -64,6 +64,7 @@ public class MessageConstant
         public const string RemoveFromCartFail = "Xóa sản phẩm khỏi giỏ hàng không thành công";
         public const string QuantityMustBeGreaterThanZero = "Số lượng sản phẩm phải lớn hơn 0";
         public const string UpdateQuantityFail = "Cập nhật số lượng sản phẩm không thành công";
+        public const string CartNotFound = "Giỏ hàng không tồn tại";
     }
 
     public static class Sms

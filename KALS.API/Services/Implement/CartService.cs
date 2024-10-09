@@ -60,8 +60,10 @@ public class CartService: BaseService<CartService>, ICartService
             cart.Add(response);
         }
         var updatedCart = JsonConvert.SerializeObject(cart);
-        await db.StringSetAsync(key, updatedCart);
-        return cart;
+        List<CartModelResponse> result = null;
+        var isSuccess = await db.StringSetAsync(key, updatedCart);
+        if(isSuccess) result = cart;
+        return result;
     }
 
     public async Task<ICollection<CartModelResponse>> GetCartAsync()

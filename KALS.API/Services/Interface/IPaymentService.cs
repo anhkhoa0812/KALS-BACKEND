@@ -6,7 +6,7 @@ namespace KALS.API.Services.Interface;
 
 public interface IPaymentService
 {
-    Task<string> CheckOut(ICollection<CartModelResponse> request);
+    Task<string> CheckOut(CheckOutRequest request);
     Task<PaymentWithOrderResponse> HandlePayment(UpdatePaymentOrderStatusRequest request); 
 
 }
