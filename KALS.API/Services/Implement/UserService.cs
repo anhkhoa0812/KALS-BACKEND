@@ -78,16 +78,17 @@ public class UserService : BaseService<UserService>, IUserService
         var member = new Member()
         {
             Id = Guid.NewGuid(),
-            UserId = user.Id
+            UserId = user.Id,
+            User = user
         };
         // await _unitOfWork.GetRepository<User>().InsertAsync(user);
         using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
             try
             {
-                await _userRepository.InsertAsync(user);
                 await _memberRepository.InsertAsync(member);
                 var isSuccess = await _memberRepository.SaveChangesAsync();
+                transaction.Complete();
                 LoginResponse response = null;
                 if (isSuccess) response = _mapper.Map<LoginResponse>(user);
                 response.Token = JwtUtil.GenerateJwtToken(user, new Tuple<string, Guid>("userId", user.Id), _configuration);
