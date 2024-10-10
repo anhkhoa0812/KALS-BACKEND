@@ -1,3 +1,4 @@
+using System.Transactions;
 using AutoMapper;
 using KALS.API.Constant;
 using KALS.API.Models.Category;
@@ -13,53 +14,67 @@ namespace KALS.API.Services.Implement;
 
 public class CategoryService: BaseService<CategoryService>, ICategoryService
 {
-    public CategoryService(IUnitOfWork<KitAndLabDbContext> unitOfWork, ILogger<CategoryService> logger, IMapper mapper, IHttpContextAccessor httpContextAccessor, IConfiguration configuration) : base(unitOfWork, logger, mapper, httpContextAccessor, configuration)
+    private readonly ICategoryRepository _categoryRepository;
+    private readonly IProductCategoryRepository _productCategoryRepository;
+    private readonly IProductRepository _productRepository;
+    public CategoryService(ILogger<CategoryService> logger, 
+        IMapper mapper, IHttpContextAccessor httpContextAccessor, IConfiguration configuration, 
+        ICategoryRepository categoryRepository, IProductCategoryRepository productCategoryRepository, IProductRepository productRepository) : base(logger, mapper, httpContextAccessor, configuration)
     {
+        _categoryRepository = categoryRepository;
+        _productCategoryRepository = productCategoryRepository;
+        _productRepository = productRepository;
     }
 
     public async Task<IPaginate<CategoryResponse>> GetCategoriesPagingAsync(int page, int size)
     {
-        var categories = await _unitOfWork.GetRepository<Category>().GetPagingListAsync(
-            selector: c => new CategoryResponse()
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Description = c.Description,
-                CreatedAt = c.CreatedAt,
-                ModifiedAt = c.ModifiedAt
-            },
-            page: page,
-            size: size,
-            orderBy: c => c.OrderByDescending(c => c.CreatedAt)
-        );
-        return categories;
+        // var categories = await _unitOfWork.GetRepository<Category>().GetPagingListAsync(
+        //     selector: c => new CategoryResponse()
+        //     {
+        //         Id = c.Id,
+        //         Name = c.Name,
+        //         Description = c.Description,
+        //         CreatedAt = c.CreatedAt,
+        //         ModifiedAt = c.ModifiedAt
+        //     },
+        //     page: page,
+        //     size: size,
+        //     orderBy: c => c.OrderByDescending(c => c.CreatedAt)
+        // );
+        var categories = await _categoryRepository.GetCategoriesPaginateAsync(page, size);
+        var response = _mapper.Map<IPaginate<CategoryResponse>>(categories);
+        return response;
     }
 
     public async Task<CategoryResponse> GetCategoryByIdAsync(Guid id)
     {
         if (id == Guid.Empty) throw new BadHttpRequestException(MessageConstant.Category.CategoryIdNotNull);
-        var category = await _unitOfWork.GetRepository<Category>().SingleOrDefaultAsync(
-            selector: c => new CategoryResponse()
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Description = c.Description,
-                CreatedAt = c.CreatedAt,
-                ModifiedAt = c.ModifiedAt
-            },
-            predicate: c => c.Id == id
-        );
-        return category;
+        // var category = await _unitOfWork.GetRepository<Category>().SingleOrDefaultAsync(
+        //     selector: c => new CategoryResponse()
+        //     {
+        //         Id = c.Id,
+        //         Name = c.Name,
+        //         Description = c.Description,
+        //         CreatedAt = c.CreatedAt,
+        //         ModifiedAt = c.ModifiedAt
+        //     },
+        //     predicate: c => c.Id == id
+        // );
+        var category = await _categoryRepository.GetCategoryByIdAsync(id);
+        var categoryResponse = _mapper.Map<CategoryResponse>(category);
+        return categoryResponse;
     }
 
     public async Task<CategoryResponse> UpdateProductCategoryByCategoryIdAsync(Guid categoryId, UpdateProductCategoryRequest request)
     {
+        
         if(categoryId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.Category.CategoryIdNotNull);
-        var category = await _unitOfWork.GetRepository<Category>().SingleOrDefaultAsync(
-            predicate: c => c.Id == categoryId,
-            include: c => c.Include(c => c.ProductCategories)
-                .ThenInclude(pc => pc.Product)
-        );
+        // var category = await _unitOfWork.GetRepository<Category>().SingleOrDefaultAsync(
+        //     predicate: c => c.Id == categoryId,
+        //     include: c => c.Include(c => c.ProductCategories)
+        //         .ThenInclude(pc => pc.Product)
+        // );
+        var category = await _categoryRepository.GetCategoryByIdAsync(categoryId);
         if (category == null) throw new BadHttpRequestException(MessageConstant.Category.CategoryNotFound);
         
         var currentProductIds = category.ProductCategories
@@ -67,53 +82,72 @@ public class CategoryService: BaseService<CategoryService>, ICategoryService
             .ToList();
         var newProductIds = request.ProductIds.Except(currentProductIds).ToList();
         var removeProductIds = currentProductIds.Except(request.ProductIds).ToList();
-
-        if (removeProductIds.Any())
+        
+        foreach (var newProductId in newProductIds)
         {
-            var removeProductCategories = category.ProductCategories.Where(pc => removeProductIds.Contains(pc.ProductId)).ToList();
-            foreach (var removeProductCategory in removeProductCategories)
+            var newProduct = await _productRepository.GetProductByIdAsync(newProductId);
+            if (newProduct == null)
             {
-                _unitOfWork.GetRepository<ProductCategory>().DeleteAsync(removeProductCategory);
+                throw new BadHttpRequestException(MessageConstant.Product.ProductNotFound);
             }
         }
 
-        if (newProductIds.Any())
+        using (var transaction  = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            foreach (var newProductId in newProductIds)
+            try
             {
-                var newProduct = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
-                    predicate: p => p.Id == newProductId
-                );
-                if (newProduct != null)
+                if (removeProductIds.Any())
                 {
-                    await _unitOfWork.GetRepository<ProductCategory>().InsertAsync(new ProductCategory()
+                    var removeProductCategories = category.ProductCategories
+                        .Where(pc => removeProductIds.Contains(pc.ProductId))
+                        .ToList();
+                    foreach (var removeProductCategory in removeProductCategories)
                     {
-                        ProductId = newProductId,
-                        CategoryId = categoryId
-                    });
+                        _productCategoryRepository.DeleteAsync(removeProductCategory);
+                    }
                 }
+                
+                if (newProductIds.Any())
+                {
+                    foreach (var newProductId in newProductIds)
+                    {
+                        await _productCategoryRepository.InsertAsync(
+                            new ProductCategory()
+                            {
+                                ProductId = newProductId,
+                                CategoryId = categoryId
+                            });
+                    }
+                }
+                
+                bool isSuccess = await _productCategoryRepository.SaveChangesAsync();
+                CategoryResponse response = null;
+                transaction.Complete();
+                if(isSuccess) response = _mapper.Map<CategoryResponse>(category);
+                return response;
+            }
+            catch (Exception e)
+            {
+                return null;
             }
         }
-
-        var isSuccess = await _unitOfWork.CommitAsync() > 0;
-        CategoryResponse response = null;
-        if(isSuccess) response = _mapper.Map<CategoryResponse>(category);
-        return response;
     }
 
     public async Task<CategoryResponse> UpdateCategoryAsync(Guid categoryId, UpdateCategoryRequest request)
     {
         if (categoryId == Guid.Empty) throw new BadHttpRequestException(MessageConstant.Category.CategoryIdNotNull);
-        var category = await _unitOfWork.GetRepository<Category>().SingleOrDefaultAsync(
-            predicate: c => c.Id == categoryId
-        );
+        // var category = await _unitOfWork.GetRepository<Category>().SingleOrDefaultAsync(
+        //     predicate: c => c.Id == categoryId
+        // );
+        var category = await _categoryRepository.GetCategoryByIdAsync(categoryId);
         if (category == null) throw new BadHttpRequestException(MessageConstant.Category.CategoryNotFound);
         category.Name = request.Name;
         category.Description = request.Description;
         category.ModifiedAt = TimeUtil.GetCurrentSEATime();
         
-        _unitOfWork.GetRepository<Category>().UpdateAsync(category);
-        var isSuccess = await _unitOfWork.CommitAsync() > 0;
+        // _unitOfWork.GetRepository<Category>().UpdateAsync(category);
+        _categoryRepository.UpdateAsync(category);
+        var isSuccess = await _categoryRepository.SaveChangesAsync();
         CategoryResponse response = null;
         if (isSuccess) response = _mapper.Map<CategoryResponse>(category);
         return response;
@@ -126,8 +160,9 @@ public class CategoryService: BaseService<CategoryService>, ICategoryService
         category.CreatedAt = TimeUtil.GetCurrentSEATime();
         category.ModifiedAt = TimeUtil.GetCurrentSEATime();
 
-        await _unitOfWork.GetRepository<Category>().InsertAsync(category);
-        var isSuccess = await _unitOfWork.CommitAsync() > 0;
+        // await _unitOfWork.GetRepository<Category>().InsertAsync(category);
+        await _categoryRepository.InsertAsync(category);
+        var isSuccess = await _categoryRepository.SaveChangesWithTransactionAsync();
         CategoryResponse response = null;
         if (isSuccess) response = _mapper.Map<CategoryResponse>(category);
         return response;

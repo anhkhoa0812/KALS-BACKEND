@@ -1,6 +1,7 @@
 using AutoMapper;
 using KALS.API.Models.Category;
 using KALS.Domain.Entities;
+using KALS.Domain.Paginate;
 
 namespace KALS.API.Mapper;
 
@@ -10,5 +11,6 @@ public class CategoryMapper : Profile
     {
         CreateMap<CreateCategoryRequest, Category>();
         CreateMap<Category, CategoryResponse>();
+        CreateMap(typeof(IPaginate<>), typeof(IPaginate<>)).ConvertUsing(typeof(PaginateConverter<,>));
     }
 }

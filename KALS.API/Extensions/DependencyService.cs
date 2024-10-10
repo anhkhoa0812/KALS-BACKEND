@@ -14,9 +14,28 @@ namespace KALS.API.Extensions;
 
 public static class DependencyService
 {
-    public static IServiceCollection AddUnitOfWork(this IServiceCollection service)
+    // public static IServiceCollection AddUnitOfWork(this IServiceCollection service)
+    // {
+    //     service.AddScoped<IUnitOfWork<KitAndLabDbContext>, UnitOfWork<KitAndLabDbContext>>();
+    //     return service;
+    // }
+
+    public static IServiceCollection AddRepositories(this IServiceCollection service)
     {
-        service.AddScoped<IUnitOfWork<KitAndLabDbContext>, UnitOfWork<KitAndLabDbContext>>();
+        service.AddScoped<IProductRepository, ProductRepository>();
+        service.AddScoped<ICategoryRepository, CategoryRepository>();
+        service.AddScoped<IProductCategoryRepository, ProductCategoryRepository>();
+        service.AddScoped<ILabProductRepository, LabProductRepository>();
+        service.AddScoped<IMemberRepository, MemberRepository>();
+        service.AddScoped<ILabRepository, LabRepository>();
+        service.AddScoped<IUserRepository, UserRepository>();
+        service.AddScoped<IOrderRepository, OrderRepository>();
+        service.AddScoped<IOrderItemRepository, OrderItemRepository>();
+        service.AddScoped<ILabMemberRepository, LabMemberRepository>();
+        service.AddScoped<IPaymentRepository, PaymentRepository>();
+        service.AddScoped<IProductImageRepository, ProductImageRepository>();
+        service.AddScoped<IProductRelationshipRepository, ProductRelationshipRepository>();
+        service.AddScoped<IStaffRepository, StaffRepository>();
         return service;
     }
     public static IServiceCollection AddDatabase(this IServiceCollection service)

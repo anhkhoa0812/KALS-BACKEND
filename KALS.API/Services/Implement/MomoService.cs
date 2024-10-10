@@ -11,7 +11,7 @@ namespace KALS.API.Services.Implement;
 
 public class MomoService: BaseService<MomoService>, IMomoService
 {
-    public MomoService(IUnitOfWork<KitAndLabDbContext> unitOfWork, ILogger<MomoService> logger, IMapper mapper, IHttpContextAccessor httpContextAccessor, IConfiguration configuration) : base(unitOfWork, logger, mapper, httpContextAccessor, configuration)
+    public MomoService(ILogger<MomoService> logger, IMapper mapper, IHttpContextAccessor httpContextAccessor, IConfiguration configuration) : base(logger, mapper, httpContextAccessor, configuration)
     {
     }
 

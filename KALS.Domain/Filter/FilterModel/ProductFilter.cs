@@ -1,14 +1,15 @@
 using System.Linq.Expressions;
-using KALS.Repository.Interface;
+using KALS.Domain.Entities;
+using KALS.Domain.Filter;
 
-namespace KALS.API.Models.Filter;
+namespace KALS.Domain.Filter.FilterModel;
 
-public class ProductFilter: IFilter<Domain.Entities.Product>
+public class ProductFilter: IFilter<Product>
 {
     public string? Name { get; set; }
     public DateTime? CreateAt { get; set; }
     public List<Guid>? CategoryIds { get; set; }
-    public Expression<Func<Domain.Entities.Product, bool>> ToExpression()
+    public Expression<Func<Product, bool>> ToExpression()
     {
         return product => 
             (string.IsNullOrEmpty(Name) || product.Name.Contains(Name)) &&

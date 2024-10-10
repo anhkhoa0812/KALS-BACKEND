@@ -1,9 +1,9 @@
 using KALS.API.Constant;
-using KALS.API.Models.Filter;
 using KALS.API.Models.Order;
 using KALS.API.Models.OrderItem;
 using KALS.API.Services.Implement;
 using KALS.API.Services.Interface;
+using KALS.Domain.Filter.FilterModel;
 using KALS.Domain.Paginate;
 using Microsoft.AspNetCore.Mvc;
 

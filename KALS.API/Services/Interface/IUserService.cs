@@ -1,6 +1,6 @@
 using KALS.API.Models;
-using KALS.API.Models.Filter;
 using KALS.API.Models.User;
+using KALS.Domain.Filter.FilterModel;
 using KALS.Domain.Paginate;
 
 namespace KALS.API.Services.Interface;

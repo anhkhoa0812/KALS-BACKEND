@@ -1,8 +1,8 @@
 using KALS.API.Constant;
-using KALS.API.Models.Filter;
 using KALS.API.Models.Lab;
 using KALS.API.Models.Product;
 using KALS.API.Services.Interface;
+using KALS.Domain.Filter.FilterModel;
 using KALS.Domain.Paginate;
 using Microsoft.AspNetCore.Mvc;
 

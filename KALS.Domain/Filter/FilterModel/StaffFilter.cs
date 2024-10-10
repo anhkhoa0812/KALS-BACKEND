@@ -1,9 +1,9 @@
 using System.Linq.Expressions;
 using KALS.Domain.Entities;
 using KALS.Domain.Enums;
-using KALS.Repository.Interface;
+using KALS.Domain.Filter;
 
-namespace KALS.API.Models.Filter;
+namespace KALS.Domain.Filter.FilterModel;
 
 public class StaffFilter: IFilter<Staff>
 {

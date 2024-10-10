@@ -34,6 +34,7 @@
         <ProjectReference Include="..\KALS.Domain\KALS.Domain.csproj" />
     </ItemGroup>
     <ItemGroup>
+      <Folder Include="Models\Filter\" />
       <Folder Include="Models\ProductRelationship\" />
     </ItemGroup>
 

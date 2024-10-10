@@ -19,10 +19,21 @@ namespace KALS.API.Services.Implement;
 
 public class PaymentService: BaseService<PaymentService>, IPaymentService
 {
-    
-    public PaymentService(IUnitOfWork<KitAndLabDbContext> unitOfWork, ILogger<PaymentService> logger, IMapper mapper, IHttpContextAccessor httpContextAccessor, IConfiguration configuration) : base(unitOfWork, logger, mapper, httpContextAccessor, configuration)
+    private readonly IMemberRepository _memberRepository;
+    private readonly IPaymentRepository _paymentRepository;
+    private readonly IProductRepository _productRepository;
+    private readonly IOrderRepository _orderRepository;
+    private readonly IOrderItemRepository _orderItemRepository;
+    public PaymentService(ILogger<PaymentService> logger, IMapper mapper, 
+        IHttpContextAccessor httpContextAccessor, IConfiguration configuration,
+        IMemberRepository memberRepository, IPaymentRepository paymentRepository, IProductRepository productRepository,
+        IOrderRepository orderRepository, IOrderItemRepository orderItemRepository) : base(logger, mapper, httpContextAccessor, configuration)
     {
-        
+        _memberRepository = memberRepository;
+        _paymentRepository = paymentRepository;
+        _productRepository = productRepository;
+        _orderRepository = orderRepository;
+        _orderItemRepository = orderItemRepository;
     }
 
     public async Task<string> CheckOut(CheckOutRequest request)
@@ -32,10 +43,11 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
             _configuration["PAYOS:PAYOS_CHECKSUM_KEY"] ?? throw new Exception("Cannot find environment"));
         
         var userId = GetUserIdFromJwt();
-        var member = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
-            predicate: m => m.UserId == userId,
-            include: m => m.Include(m => m.User)
-        );
+        // var member = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
+        //     predicate: m => m.UserId == userId,
+        //     include: m => m.Include(m => m.User)
+        // );
+        var member = await _memberRepository.GetMemberByUserId(userId);
         if (member == null) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
         // if( member.Ward == null || member.Province == null || member.District == null || member.Address == null) 
         //     throw new BadHttpRequestException(MessageConstant.User.MemberAddressNotFound);
@@ -65,9 +77,10 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
         
         foreach (var cartModel in cart)
         {
-            var product = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
-                predicate: p => p.Id == cartModel.ProductId
-            );
+            // var product = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
+            //     predicate: p => p.Id == cartModel.ProductId
+            // );
+            var product = await _productRepository.GetProductByIdAsync(cartModel.ProductId);
             if (product == null) throw new BadHttpRequestException(MessageConstant.Product.ProductNotFound);
             if (product.Quantity < cartModel.Quantity) throw new BadHttpRequestException(MessageConstant.Product.ProductOutOfStock);
             var orderItem = new OrderItem()
@@ -97,12 +110,15 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
             Status = PaymentStatus.Processing,
             Amount = order.Total,
         };
-        await _unitOfWork.GetRepository<Payment>().InsertAsync(payment);
-        bool isPaymentSaved = await _unitOfWork.CommitAsync() > 0;
+        // await _unitOfWork.GetRepository<Payment>().InsertAsync(payment);
+        await _paymentRepository.InsertAsync(payment);
+        bool isPaymentSaved = await _paymentRepository.SaveChangesWithTransactionAsync();
         if (!isPaymentSaved) throw new BadHttpRequestException(MessageConstant.Payment.CreatePaymentFail);
         order.PaymentId = payment.Id;
-        await _unitOfWork.GetRepository<Order>().InsertAsync(order);
-        bool isOrderSaved = await _unitOfWork.CommitAsync() > 0;
+        // await _unitOfWork.GetRepository<Order>().InsertAsync(order);
+        // bool isOrderSaved = await _unitOfWork.CommitAsync() > 0;
+        await _orderRepository.InsertAsync(order);
+        bool isOrderSaved = await _orderRepository.SaveChangesWithTransactionAsync();
         if (!isOrderSaved) throw new BadHttpRequestException(MessageConstant.Order.CreateOrderFail);
                 
         foreach (var orderItem in orderItems)
@@ -110,8 +126,10 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
             orderItem.OrderId = order.Id;
         }
                 
-        await _unitOfWork.GetRepository<OrderItem>().InsertRangeAsync(orderItems);
-        bool isSuccess = await _unitOfWork.CommitAsync() > 0;
+        // await _unitOfWork.GetRepository<OrderItem>().InsertRangeAsync(orderItems);
+        // bool isSuccess = await _unitOfWork.CommitAsync() > 0;
+        await _orderItemRepository.InsertRangeAsync(orderItems);
+        bool isSuccess = await _orderItemRepository.SaveChangesWithTransactionAsync();
         if (!isSuccess) throw new BadHttpRequestException(MessageConstant.OrderItem.CreateOrderItemFail);
                 
         PaymentData paymentData = new PaymentData(
@@ -136,10 +154,11 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
     {
         if(request.OrderCode == 0) throw new BadHttpRequestException(MessageConstant.Payment.OrderCodeNotNull);
         
-        var payment = await _unitOfWork.GetRepository<Payment>().SingleOrDefaultAsync(
-            predicate: p => p.OrderCode == request.OrderCode,
-            include: p => p.Include(p => p.Order)
-        );
+        // var payment = await _unitOfWork.GetRepository<Payment>().SingleOrDefaultAsync(
+        //     predicate: p => p.OrderCode == request.OrderCode,
+        //     include: p => p.Include(p => p.Order)
+        // );
+        var payment = await _paymentRepository.GetPaymentByOrderCode(request.OrderCode);
         
         if (payment == null) throw new BadHttpRequestException(MessageConstant.Payment.PaymentNotFound);
         
@@ -164,16 +183,20 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
                 payment.PaymentDateTime = DateTime.Parse(paymentLinkInformation.transactions[0].transactionDateTime);
                 payment.Order.Status = OrderStatus.Processing;
                 payment.Order.ModifiedAt = TimeUtil.GetCurrentSEATime();
-                _unitOfWork.GetRepository<Payment>().UpdateAsync(payment);
-                var orderItems = await _unitOfWork.GetRepository<OrderItem>().GetListAsync(
-                    predicate: oi => oi.OrderId == payment.Order.Id,
-                    include: oi => oi.Include(oi => oi.Product)
-                );
+                // _unitOfWork.GetRepository<Payment>().UpdateAsync(payment);
+                _paymentRepository.UpdateAsync(payment);
+                
+                // var orderItems = await _unitOfWork.GetRepository<OrderItem>().GetListAsync(
+                //     predicate: oi => oi.OrderId == payment.Order.Id,
+                //     include: oi => oi.Include(oi => oi.Product)
+                // );
+                var orderItems = await _orderItemRepository.GetOrderItemByOrderIdAsync(payment.Order.Id);
                 foreach (var orderItem in orderItems)
                 {
                     orderItem.Product.Quantity -= orderItem.Quantity;
                 }
-                _unitOfWork.GetRepository<OrderItem>().UpdateRangeAsync(orderItems);
+                // _unitOfWork.GetRepository<OrderItem>().UpdateRangeAsync(orderItems);
+                _orderItemRepository.UpdateRangeAsync(orderItems);
                 break;
             case PayOsStatus.EXPIRED:
             case PayOsStatus.CANCELLED:
@@ -181,16 +204,18 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
                 payment.ModifiedAt = TimeUtil.GetCurrentSEATime();
                 payment.Order.Status = OrderStatus.Cancelled;
                 payment.Order.ModifiedAt = TimeUtil.GetCurrentSEATime();
-                _unitOfWork.GetRepository<Payment>().UpdateAsync(payment);
+                // _unitOfWork.GetRepository<Payment>().UpdateAsync(payment);
+                _paymentRepository.UpdateAsync(payment);
                 break;
             case PayOsStatus.PENDING:
                 throw new BadHttpRequestException(MessageConstant.Payment.YourOrderIsNotPaid);
             default:
                 throw new BadHttpRequestException(MessageConstant.Payment.PayOsStatusNotTrue);
         }
-        bool isSuccess = await _unitOfWork.CommitAsync() > 0;
+        bool isPaymentUpdated = await _paymentRepository.SaveChangesWithTransactionAsync();
+        bool isOrderItemUpdated = await _orderItemRepository.SaveChangesWithTransactionAsync();
         PaymentWithOrderResponse response = null;
-        if (isSuccess) response = _mapper.Map<PaymentWithOrderResponse>(payment);
+        if (isPaymentUpdated && isOrderItemUpdated) response = _mapper.Map<PaymentWithOrderResponse>(payment);
         return response;
     }
 }

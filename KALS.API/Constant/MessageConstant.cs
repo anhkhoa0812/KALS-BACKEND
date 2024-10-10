@@ -19,6 +19,7 @@ public class MessageConstant
         public const string RoleNotFound = "Role không tồn tại";
         public const string StaffNotFound = "Staff không tồn tại";
         public const string UpdateStaffFail = "Cập nhật staff không thành công";
+        public const string InsertUserFail = "Thêm user không thành công";
     }
 
     public static class Order
@@ -40,6 +41,7 @@ public class MessageConstant
         public const string ParentProductIdNotNull = "Id của sản phẩm kit không được để trống";
         public const string ChildProductIdNotNull = "Id của sản phẩm con không được để trống";
         public const string ProductOutOfStock = "Sản phẩm đã hết hàng";
+        public const string CreateProductFailed = "Tạo sản phẩm không thành công";
     }
     public static class Lab
     {
@@ -56,6 +58,9 @@ public class MessageConstant
         public const string UpdateProductCategoryFail = "Cập nhật danh mục của sản phẩm không thành công";
         public const string UpdateCategoryFail = "Cập nhật danh mục không thành công";
         public const string CreateCategoryFail = "Tạo danh mục không thành công";
+        public const string UpdateProductCategoryFailed  = "Cập nhật danh mục sản phẩm không thành công";
+        public const string InsertProductCategoryFailed = "Thêm danh mục sản phẩm không thành công";
+        public const string DeleteProductCategoryFailed = "Xóa danh mục sản phẩm không thành công";
     }
 
     public static class Cart

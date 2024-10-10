@@ -1,9 +1,9 @@
 using KALS.API.Constant;
-using KALS.API.Models.Filter;
 using KALS.API.Models.User;
 using KALS.API.Services.Interface;
 using KALS.API.Validator;
 using KALS.Domain.Enums;
+using KALS.Domain.Filter.FilterModel;
 using KALS.Domain.Paginate;
 using Microsoft.AspNetCore.Mvc;
 

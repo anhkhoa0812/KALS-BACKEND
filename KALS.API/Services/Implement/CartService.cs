@@ -14,22 +14,29 @@ namespace KALS.API.Services.Implement;
 
 public class CartService: BaseService<CartService>, ICartService
 {
-    public CartService(IUnitOfWork<KitAndLabDbContext> unitOfWork, ILogger<CartService> logger, IMapper mapper, IHttpContextAccessor httpContextAccessor, IConfiguration configuration) : base(unitOfWork, logger, mapper, httpContextAccessor, configuration)
+    private readonly IProductRepository _productRepository;
+    private readonly IUserRepository _userRepository;
+    public CartService(ILogger<CartService> logger, IMapper mapper, IHttpContextAccessor httpContextAccessor, 
+        IConfiguration configuration, IProductRepository productRepository, IUserRepository userRepository) : base(logger, mapper, httpContextAccessor, configuration)
     {
+        _productRepository = productRepository;
+        _userRepository = userRepository;
     }
 
     public async Task<ICollection<CartModelResponse>> AddToCartAsync(CartModel request)
     {
         var userId = GetUserIdFromJwt();
         if (userId == Guid.Empty) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
-        var user = await _unitOfWork.GetRepository<User>().SingleOrDefaultAsync(
-            predicate:x => x.Id == userId
-        );
+        // var user = await _unitOfWork.GetRepository<User>().SingleOrDefaultAsync(
+        //     predicate:x => x.Id == userId
+        // );
+        var user = await _userRepository.GetUserByIdAsync(userId);
         if (user == null) throw new BadHttpRequestException(MessageConstant.User.UserNotFound);
 
-        var product = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
-            predicate: x => x.Id == request.ProductId
-        );
+        // var product = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
+        //     predicate: x => x.Id == request.ProductId
+        // );
+        var product = await _productRepository.GetProductByIdAsync(request.ProductId);
         if(product == null) throw new BadHttpRequestException(MessageConstant.Product.ProductNotFound);
         
         var response = _mapper.Map<CartModelResponse>(product);
@@ -125,9 +132,10 @@ public class CartService: BaseService<CartService>, ICartService
         var userId = GetUserIdFromJwt();
         if (userId == Guid.Empty) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
         
-        var product = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
-            predicate: x => x.Id == request.ProductId
-        );
+        // var product = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
+        //     predicate: x => x.Id == request.ProductId
+        // );
+        var product = await _productRepository.GetProductByIdAsync(request.ProductId);
         if(product == null) throw new BadHttpRequestException(MessageConstant.Product.ProductNotFound);
         
         var redis = ConnectionMultiplexer.Connect(_configuration.GetConnectionString("Redis"));

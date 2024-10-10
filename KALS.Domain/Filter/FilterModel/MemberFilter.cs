@@ -1,8 +1,8 @@
 using System.Linq.Expressions;
 using KALS.Domain.Entities;
-using KALS.Repository.Interface;
+using KALS.Domain.Filter;
 
-namespace KALS.API.Models.Filter;
+namespace KALS.Domain.Filter.FilterModel;
 
 public class MemberFilter: IFilter<Member>
 {

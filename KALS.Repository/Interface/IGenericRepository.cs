@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using KALS.Domain.Filter;
 using KALS.Domain.Paginate;
 using Microsoft.EntityFrameworkCore.Query;
 
@@ -42,5 +43,9 @@ public interface IGenericRepository<T>: IDisposable where T : class
     void UpdateRangeAsync(IEnumerable<T> entities);
     
     void DeleteAsync(T entity);
+    
+    Task<bool> SaveChangesWithTransactionAsync();
+    
+    Task<bool> SaveChangesAsync();
     
 }

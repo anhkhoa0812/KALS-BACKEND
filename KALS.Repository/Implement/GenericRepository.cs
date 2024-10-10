@@ -1,4 +1,6 @@
 using System.Linq.Expressions;
+using KALS.Domain.DataAccess;
+using KALS.Domain.Filter;
 using KALS.Domain.Paginate;
 using KALS.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -8,10 +10,10 @@ namespace KALS.Repository.Implement;
 
 public class GenericRepository<T>: IGenericRepository<T>, IAsyncDisposable where T : class
 {
-    protected readonly DbContext _dbContext;
+    protected readonly KitAndLabDbContext _dbContext;
     protected readonly DbSet<T> _dbSet;
     
-    public GenericRepository(DbContext context)
+    public GenericRepository(KitAndLabDbContext context)
     {
         _dbContext = context;
         _dbSet = context.Set<T>();
@@ -49,7 +51,7 @@ public class GenericRepository<T>: IGenericRepository<T>, IAsyncDisposable where
         return query.AsNoTracking().Select(selector).FirstOrDefaultAsync();
     }
 
-    public Task<IPaginate<TResult>> GetPagingListAsync<TResult>(Expression<Func<T, TResult>> selector, IFilter<T> filter, Expression<Func<T, bool>> predicate = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+    public Task<IPaginate<TResult>> GetPagingListAsync<TResult>(Expression<Func<T, TResult>>? selector, IFilter<T> filter, Expression<Func<T, bool>> predicate = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
         Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null, int page = 1, int size = 10, string? sortBy = null, bool isAsc = true)
     {
         IQueryable<T> query = _dbSet;
@@ -93,10 +95,10 @@ public class GenericRepository<T>: IGenericRepository<T>, IAsyncDisposable where
         await _dbSet.AddAsync(entity);
     }
 
-    public Task InsertRangeAsync(IEnumerable<T> entities)
+    public async Task InsertRangeAsync(IEnumerable<T> entities)
     {
-        if (entities == null) return Task.CompletedTask;
-        return _dbSet.AddRangeAsync(entities);
+        if (entities == null) return;
+        _dbSet.AddRangeAsync(entities);
     }
     #endregion
 
@@ -120,5 +122,25 @@ public class GenericRepository<T>: IGenericRepository<T>, IAsyncDisposable where
     }
 
     #endregion
-    
+    public async Task<bool> SaveChangesWithTransactionAsync()
+    {
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
+        {
+            var result = await _dbContext.SaveChangesAsync() > 0;
+            await transaction.CommitAsync();
+            return result;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            return false;
+        }
+    }
+
+    public async Task<bool> SaveChangesAsync()
+    {
+        var result = await _dbContext.SaveChangesAsync() > 0;
+        return result;
+    }
 }

@@ -1,6 +1,6 @@
-using KALS.API.Models.Filter;
 using KALS.API.Models.Order;
 using KALS.API.Models.OrderItem;
+using KALS.Domain.Filter.FilterModel;
 using KALS.Domain.Paginate;
 
 namespace KALS.API.Services.Interface;

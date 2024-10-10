@@ -1,10 +1,10 @@
 using System.Linq.Expressions;
+using KALS.Domain.Entities;
 using KALS.Domain.Enums;
-using KALS.Repository.Interface;
 
-namespace KALS.API.Models.Filter;
+namespace KALS.Domain.Filter.FilterModel;
 
-public class OrderFilter: IFilter<Domain.Entities.Order>
+public class OrderFilter: IFilter<Order>
 {
     public OrderStatus? Status { get; set; }
     public DateTime? CreatedAt { get; set; }

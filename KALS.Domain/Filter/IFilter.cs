@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace KALS.Repository.Interface;
+namespace KALS.Domain.Filter;
 
 public interface IFilter<T>
 {

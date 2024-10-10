@@ -15,7 +15,8 @@ try
             policy => { policy.WithOrigins("*").AllowAnyHeader().AllowAnyMethod(); });
     });
     builder.Services.AddDatabase();
-    builder.Services.AddUnitOfWork();
+    // builder.Services.AddUnitOfWork();
+    builder.Services.AddRepositories();
     builder.Services.AddServices(builder.Configuration);
     builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
     builder.Services.AddEndpointsApiExplorer();
