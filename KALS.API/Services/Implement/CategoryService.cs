@@ -162,7 +162,7 @@ public class CategoryService: BaseService<CategoryService>, ICategoryService
 
         // await _unitOfWork.GetRepository<Category>().InsertAsync(category);
         await _categoryRepository.InsertAsync(category);
-        var isSuccess = await _categoryRepository.SaveChangesWithTransactionAsync();
+        var isSuccess = await _categoryRepository.SaveChangesAsync();
         CategoryResponse response = null;
         if (isSuccess) response = _mapper.Map<CategoryResponse>(category);
         return response;

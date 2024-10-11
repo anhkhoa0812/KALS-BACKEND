@@ -16,9 +16,16 @@ public class PaymentController: BaseController<PaymentController>
     }
     [HttpPost(ApiEndPointConstant.Payment.PaymentCheckOut)]
     [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CheckOut([FromBody] CheckOutRequest request)
     {
             var result = await _paymentService.CheckOut(request);
+            if (result == null)
+            {
+                _logger.LogError($"Check out failed");
+                return Problem(MessageConstant.Payment.CheckOutFail);
+            }
+            _logger.LogInformation("Check out successful");
             return Ok(result);
     }
     [HttpPost(ApiEndPointConstant.Payment.PaymentEndPoint)]

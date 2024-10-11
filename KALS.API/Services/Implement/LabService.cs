@@ -64,7 +64,7 @@ public class LabService: BaseService<LabService>, ILabService
                 // var newLab = _unitOfWork.GetRepository<Lab>().SingleOrDefaultAsync(
                 //     predicate: l => l.Id == newLabId
                 // );
-                var newLab = _labRepository.GetLabByIdAsync(newLabId);
+                var newLab = await _labRepository.GetLabByIdAsync(newLabId);
                 if (newLab != null)
                 {
                     // _unitOfWork.GetRepository<LabProduct>().InsertAsync(new LabProduct()
@@ -83,7 +83,7 @@ public class LabService: BaseService<LabService>, ILabService
 
         GetProductResponse response = null;
         // bool isSuccess = await _unitOfWork.CommitAsync() > 0;
-        bool isSuccess = await _labProductRepository.SaveChangesWithTransactionAsync();
+        bool isSuccess = await _labProductRepository.SaveChangesAsync();
         if(isSuccess) response = _mapper.Map<GetProductResponse>(product);
         return response;
     }
@@ -240,7 +240,7 @@ public class LabService: BaseService<LabService>, ILabService
         // };
         // await _unitOfWork.GetRepository<Lab>().InsertAsync(lab);
         await _labRepository.InsertAsync(lab);
-        bool isSuccess = await _labRepository.SaveChangesWithTransactionAsync();
+        bool isSuccess = await _labRepository.SaveChangesAsync();
         LabResponse labResponse = null;
         if (isSuccess) labResponse = _mapper.Map<LabResponse>(lab);
         return labResponse;

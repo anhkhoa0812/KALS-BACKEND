@@ -44,8 +44,6 @@ public interface IGenericRepository<T>: IDisposable where T : class
     
     void DeleteAsync(T entity);
     
-    Task<bool> SaveChangesWithTransactionAsync();
-    
     Task<bool> SaveChangesAsync();
     
 }

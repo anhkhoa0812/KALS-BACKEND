@@ -1,3 +1,4 @@
+using System.Transactions;
 using AutoMapper;
 using KALS.API.Constant;
 using KALS.API.Models.Cart;
@@ -89,7 +90,8 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
                 ProductId = product.Id,
                 Quantity = cartModel.Quantity,
                 CreatedAt = TimeUtil.GetCurrentSEATime(),
-                ModifiedAt =TimeUtil.GetCurrentSEATime()
+                ModifiedAt =TimeUtil.GetCurrentSEATime(),
+                Order = order
             };
             orderItems.Add(orderItem);
             
@@ -109,29 +111,26 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
             ModifiedAt = TimeUtil.GetCurrentSEATime(),
             Status = PaymentStatus.Processing,
             Amount = order.Total,
+            Order = order
         };
-        // await _unitOfWork.GetRepository<Payment>().InsertAsync(payment);
-        await _paymentRepository.InsertAsync(payment);
-        bool isPaymentSaved = await _paymentRepository.SaveChangesWithTransactionAsync();
-        if (!isPaymentSaved) throw new BadHttpRequestException(MessageConstant.Payment.CreatePaymentFail);
-        order.PaymentId = payment.Id;
-        // await _unitOfWork.GetRepository<Order>().InsertAsync(order);
-        // bool isOrderSaved = await _unitOfWork.CommitAsync() > 0;
-        await _orderRepository.InsertAsync(order);
-        bool isOrderSaved = await _orderRepository.SaveChangesWithTransactionAsync();
-        if (!isOrderSaved) throw new BadHttpRequestException(MessageConstant.Order.CreateOrderFail);
+        using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        {
+            try
+            {
+                await _orderRepository.InsertAsync(order);
+                // await _unitOfWork.GetRepository<Payment>().InsertAsync(payment);
+                await _paymentRepository.InsertAsync(payment);
                 
         foreach (var orderItem in orderItems)
         {
             orderItem.OrderId = order.Id;
         }
-                
-        // await _unitOfWork.GetRepository<OrderItem>().InsertRangeAsync(orderItems);
-        // bool isSuccess = await _unitOfWork.CommitAsync() > 0;
         await _orderItemRepository.InsertRangeAsync(orderItems);
-        bool isSuccess = await _orderItemRepository.SaveChangesWithTransactionAsync();
-        if (!isSuccess) throw new BadHttpRequestException(MessageConstant.OrderItem.CreateOrderItemFail);
-                
+        
+        var isSuccess = await _orderRepository.SaveChangesAsync();
+        transaction.Complete();
+        if (!isSuccess) throw new BadHttpRequestException(MessageConstant.Order.CreateOrderFail);
+        
         PaymentData paymentData = new PaymentData(
             orderCode, 
             (int)order.Total, 
@@ -146,8 +145,14 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
         
         // Call the external payment service to create a payment link
         CreatePaymentResult createPayment = await _payOs.createPaymentLink(paymentData);
-
-        return createPayment.checkoutUrl;
+        
+        return createPayment.checkoutUrl; 
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
+        }
     }
 
     public async Task<PaymentWithOrderResponse> HandlePayment(UpdatePaymentOrderStatusRequest request)
@@ -174,48 +179,54 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
         PaymentLinkInformation paymentLinkInformation = await _payOs.getPaymentLinkInformation(request.OrderCode);
         if(paymentLinkInformation == null) 
             throw new BadHttpRequestException(MessageConstant.Payment.CannotFindPaymentLinkInformation);
-
-        switch (EnumUtil.ParseEnum<PayOsStatus>(paymentLinkInformation.status))
+        if (paymentLinkInformation.status == PayOsStatus.PENDING.ToString())
+            throw new BadHttpRequestException(MessageConstant.Payment.YourOrderIsNotPaid);
+        
+        using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            case PayOsStatus.PAID:
-                payment.Status = PaymentStatus.Paid;
-                payment.ModifiedAt = TimeUtil.GetCurrentSEATime();
-                payment.PaymentDateTime = DateTime.Parse(paymentLinkInformation.transactions[0].transactionDateTime);
-                payment.Order.Status = OrderStatus.Processing;
-                payment.Order.ModifiedAt = TimeUtil.GetCurrentSEATime();
-                // _unitOfWork.GetRepository<Payment>().UpdateAsync(payment);
-                _paymentRepository.UpdateAsync(payment);
-                
-                // var orderItems = await _unitOfWork.GetRepository<OrderItem>().GetListAsync(
-                //     predicate: oi => oi.OrderId == payment.Order.Id,
-                //     include: oi => oi.Include(oi => oi.Product)
-                // );
-                var orderItems = await _orderItemRepository.GetOrderItemByOrderIdAsync(payment.Order.Id);
-                foreach (var orderItem in orderItems)
+            try
+            {
+                switch (EnumUtil.ParseEnum<PayOsStatus>(paymentLinkInformation.status))
                 {
-                    orderItem.Product.Quantity -= orderItem.Quantity;
+                    case PayOsStatus.PAID:
+                        payment.Status = PaymentStatus.Paid;
+                        payment.ModifiedAt = TimeUtil.GetCurrentSEATime();
+                        payment.PaymentDateTime = DateTime.Parse(paymentLinkInformation.transactions[0].transactionDateTime);
+                        payment.Order.Status = OrderStatus.Processing;
+                        payment.Order.ModifiedAt = TimeUtil.GetCurrentSEATime();
+                
+                        _paymentRepository.UpdateAsync(payment);
+                
+                        var orderItems = await _orderItemRepository.GetOrderItemByOrderIdAsync(payment.Order.Id);
+                        foreach (var orderItem in orderItems)
+                        {
+                            orderItem.Product.Quantity -= orderItem.Quantity;
+                        }
+                        // _unitOfWork.GetRepository<OrderItem>().UpdateRangeAsync(orderItems);
+                        _orderItemRepository.UpdateRangeAsync(orderItems);
+                        break;
+                    case PayOsStatus.EXPIRED:
+                    case PayOsStatus.CANCELLED:
+                        payment.Status = PaymentStatus.Fail;
+                        payment.ModifiedAt = TimeUtil.GetCurrentSEATime();
+                        payment.Order.Status = OrderStatus.Cancelled;
+                        payment.Order.ModifiedAt = TimeUtil.GetCurrentSEATime();
+                        // _unitOfWork.GetRepository<Payment>().UpdateAsync(payment);
+                        _paymentRepository.UpdateAsync(payment);
+                        break;
+                    default:
+                        throw new BadHttpRequestException(MessageConstant.Payment.PayOsStatusNotTrue);
                 }
-                // _unitOfWork.GetRepository<OrderItem>().UpdateRangeAsync(orderItems);
-                _orderItemRepository.UpdateRangeAsync(orderItems);
-                break;
-            case PayOsStatus.EXPIRED:
-            case PayOsStatus.CANCELLED:
-                payment.Status = PaymentStatus.Fail;
-                payment.ModifiedAt = TimeUtil.GetCurrentSEATime();
-                payment.Order.Status = OrderStatus.Cancelled;
-                payment.Order.ModifiedAt = TimeUtil.GetCurrentSEATime();
-                // _unitOfWork.GetRepository<Payment>().UpdateAsync(payment);
-                _paymentRepository.UpdateAsync(payment);
-                break;
-            case PayOsStatus.PENDING:
-                throw new BadHttpRequestException(MessageConstant.Payment.YourOrderIsNotPaid);
-            default:
-                throw new BadHttpRequestException(MessageConstant.Payment.PayOsStatusNotTrue);
+                bool isSuccess = await _paymentRepository.SaveChangesAsync();
+                transaction.Complete();
+                PaymentWithOrderResponse response = null;
+                if (isSuccess) response = _mapper.Map<PaymentWithOrderResponse>(payment);
+                return response;
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
         }
-        bool isPaymentUpdated = await _paymentRepository.SaveChangesWithTransactionAsync();
-        bool isOrderItemUpdated = await _orderItemRepository.SaveChangesWithTransactionAsync();
-        PaymentWithOrderResponse response = null;
-        if (isPaymentUpdated && isOrderItemUpdated) response = _mapper.Map<PaymentWithOrderResponse>(payment);
-        return response;
     }
 }

@@ -252,7 +252,7 @@ public class ProductService: BaseService<ProductService>, IProductService
         
         // _unitOfWork.GetRepository<Product>().UpdateAsync(product);
         _productRepository.UpdateAsync(product);
-        bool isSuccess = await _productRepository.SaveChangesWithTransactionAsync();
+        bool isSuccess = await _productRepository.SaveChangesAsync();
         GetProductResponse productResponse = null;
         if (isSuccess) productResponse = _mapper.Map<GetProductResponse>(product);
         return productResponse;

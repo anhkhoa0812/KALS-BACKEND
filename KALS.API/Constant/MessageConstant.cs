@@ -94,6 +94,7 @@ public class MessageConstant
         public const string CreatePaymentFail = "Tạo thanh toán không thành công";
         public const string FailToCreatePaymentLink = "Tạo link thanh toán không thành công";
         public const string PayOsStatusNotTrue = "Trạng thái thanh toán của PayOs không hợp lệ";
+        public const string CheckOutFail = "Thanh toán không thành công";
     }
 
     public static class OrderItem

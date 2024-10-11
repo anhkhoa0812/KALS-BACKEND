@@ -134,21 +134,24 @@ public class OrderService: BaseService<OrderService>, IOrderService
                     if (product == null) throw new BadHttpRequestException(MessageConstant.Product.ProductNotFound);
                     foreach (var labProduct in product.LabProducts)
                     {
-                        var existedLabMember = _labMemberRepository.GetLabMemberByLabIdAndMemberId(labProduct.LabId, order.MemberId);
+                        var existedLabMember = await _labMemberRepository.GetLabMemberByLabIdAndMemberId(labProduct.LabId, order.MemberId);
                         if (existedLabMember != null) continue;
                         await _labMemberRepository.InsertAsync(new LabMember()
                         {
                             MemberId = order.MemberId,
                             LabId = labProduct.LabId
                         });
-                        var isInsertLabMemberSuccess = await _labMemberRepository.SaveChangesAsync();
-                        if (!isInsertLabMemberSuccess) return null;
+                        //TODO: fix
+                        // var isInsertLabMemberSuccess = await _labMemberRepository.SaveChangesAsync();
+                        // if (!isInsertLabMemberSuccess) return null;
                     }
                 }
                 // _unitOfWork.GetRepository<Order>().UpdateAsync(order);
                 _orderRepository.UpdateAsync(order);
-                var isOrderSuccess = await _orderRepository.SaveChangesWithTransactionAsync();
-                if (!isOrderSuccess) return null;
+                // var isOrderSuccess = await _orderRepository.SaveChangesAsync();
+                // if (!isOrderSuccess) return null;
+                var isInsertLabMemberSuccess = await _labMemberRepository.SaveChangesAsync();
+                if (!isInsertLabMemberSuccess) return null;
                 transaction.Complete();
                 OrderResponse response = _mapper.Map<OrderResponse>(order);
                 return response;
