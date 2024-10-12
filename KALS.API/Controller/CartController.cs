@@ -42,15 +42,15 @@ public class CartController: BaseController<CartController>
     [HttpDelete(ApiEndPointConstant.Cart.CartEndPoint)]
     [ProducesResponseType(typeof(ICollection<CartModelResponse>), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> RemoveFromCartAsync([FromQuery] Guid productId)
+    public async Task<IActionResult> RemoveFromCartAsync()
     {
-        var response = await _cartService.RemoveFromCartAsync(productId);
+        var response = await _cartService.ClearCartAsync();
         if (response == null)
         {
-            _logger.LogError($"Remove from cart failed with {productId}");
-            return Problem($"{MessageConstant.Cart.RemoveFromCartFail}: {productId}");
+            _logger.LogError($"Clear cart failed");
+            return Problem($"{MessageConstant.Cart.CartItemIsNull}");
         }
-        _logger.LogInformation($"Remove from cart successful with {productId}");
+        _logger.LogInformation($"Remove from cart successful");
         return Ok(response);
     }
     [HttpPatch(ApiEndPointConstant.Cart.CartEndPoint)]

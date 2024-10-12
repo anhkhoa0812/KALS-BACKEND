@@ -36,6 +36,8 @@ public static class DependencyService
         service.AddScoped<IProductImageRepository, ProductImageRepository>();
         service.AddScoped<IProductRelationshipRepository, ProductRelationshipRepository>();
         service.AddScoped<IStaffRepository, StaffRepository>();
+        service.AddScoped<ISupportRequestRepository, SupportRequestRepository>();
+        service.AddScoped<ISupportMessageRepository, SupportMessageRepository>();
         return service;
     }
     public static IServiceCollection AddDatabase(this IServiceCollection service)
@@ -59,6 +61,7 @@ public static class DependencyService
         service.AddScoped<ICartService, CartService>();
         service.AddScoped<IPaymentService, PaymentService>();
         service.AddScoped<IOrderService, OrderService>();
+        service.AddScoped<ISupportRequestService, SupportRequestService>();
         return service;
     }
 

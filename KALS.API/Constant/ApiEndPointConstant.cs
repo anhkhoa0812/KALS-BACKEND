@@ -20,6 +20,7 @@ public class ApiEndPointConstant
         public const string ProductById = ProductEndpoint + "/{id}";
         public const string UpdateProductRelationship = ProductById + "/product-relationship";
         public const string LabToProduct = ProductById + "/lab";
+        public const string CartByProductId = ProductById + "/cart";
     }
 
     public class Lab
@@ -71,5 +72,13 @@ public class ApiEndPointConstant
         public const string OrderById = OrderEndpoint + "/{id}";
         public const string UpdateOrderStatus = OrderById + "/status";
         public const string OrderItems = OrderById + "/order-items";
+    }
+
+    public class SupportRequest
+    {
+        public const string SupportRequestEndPoint = ApiEndpoint + "/support-requests";
+        public const string SupportRequestById = SupportRequestEndPoint + "/{id}";
+        public const string SupportMessage = SupportRequestById + "/messages";
+        
     }
 }

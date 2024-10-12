@@ -20,6 +20,7 @@ public class MessageConstant
         public const string StaffNotFound = "Staff không tồn tại";
         public const string UpdateStaffFail = "Cập nhật staff không thành công";
         public const string InsertUserFail = "Thêm user không thành công";
+        public const string CreateStaffFail = "Tạo staff không thành công";
     }
 
     public static class Order
@@ -49,6 +50,7 @@ public class MessageConstant
         public const string LabIdNotNull = "Id lab không được để trống";
         public const string UploadFileFail = "Upload file không thành công";
         public const string CreateLabFail = "Tạo lab không thành công";
+        public const string LabNotFound = "Lab không tồn tại";
     }
 
     public static class Category
@@ -70,6 +72,7 @@ public class MessageConstant
         public const string QuantityMustBeGreaterThanZero = "Số lượng sản phẩm phải lớn hơn 0";
         public const string UpdateQuantityFail = "Cập nhật số lượng sản phẩm không thành công";
         public const string CartNotFound = "Giỏ hàng không tồn tại";
+        public const string CartItemIsNull = "Không còn sản phẩm trong giỏ hàng";
     }
 
     public static class Sms
@@ -100,5 +103,20 @@ public class MessageConstant
     public static class OrderItem
     {
         public const string CreateOrderItemFail = "Tạo order item không thành công";
+    }
+    public static class SupportRequest
+    {
+        public const string CreateSupportRequestFail = "Tạo yêu cầu hỗ trợ không thành công";
+        public const string SupportRequestNumberIsOut = "Số lần yêu cầu hỗ trợ bài lab này đã hết";
+        public const string AnotherSupportRequestIsOpening = "Bạn đang có yêu cầu hỗ trợ khác đang mở";
+        public const string SupportRequestIdNotNull = "Id yêu cầu hỗ trợ không được để trống";
+        public const string SupportRequestNotFound = "Không tìm thấy yêu cầu hỗ trợ";
+        public const string SupportRequestClosed = "Yêu cầu hỗ trợ đã đóng";
+        public const string ResponseSupportRequestFail = "Trả lời yêu cầu hỗ trợ không thành công";
+    }
+
+    public static class LabMember
+    {
+        public const string LabMemberNotFound = "Lab member không tồn tại";
     }
 }

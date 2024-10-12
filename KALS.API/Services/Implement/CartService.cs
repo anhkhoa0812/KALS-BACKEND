@@ -155,4 +155,28 @@ public class CartService: BaseService<CartService>, ICartService
         await db.StringSetAsync(key, updatedCart);
         return cart;
     }
+
+    public async Task<ICollection<CartModelResponse>> ClearCartAsync()
+    {
+        var userId = GetUserIdFromJwt();
+        if (userId == Guid.Empty) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
+        var user = await _userRepository.GetUserByIdAsync(userId);
+        if (user == null) throw new BadHttpRequestException(MessageConstant.User.UserNotFound);
+        var redis = ConnectionMultiplexer.Connect(_configuration.GetConnectionString("Redis"));
+        var db = redis.GetDatabase();
+        var key = "Cart:" + userId;
+        var cartData = await db.StringGetAsync(key);
+        
+        if (cartData.IsNullOrEmpty)
+        {
+            return null;
+        }
+        var cart = JsonConvert.DeserializeObject<List<CartModelResponse>>(cartData);
+        cart.Clear();
+        if (!cart.Any())
+        {
+            await db.KeyDeleteAsync(key);
+        }
+        return cart;
+    }
 }

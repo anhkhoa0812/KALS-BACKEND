@@ -124,6 +124,8 @@ public class OrderService: BaseService<OrderService>, IOrderService
         // var orderItems = await _unitOfWork.GetRepository<OrderItem>().GetListAsync(
         //     predicate: oi => oi.OrderId == orderId
         var orderItems = await _orderItemRepository.GetOrderItemByOrderIdAsync(orderId);
+        if(orderItems.Any(oi => oi.Product == null)) 
+            throw new BadHttpRequestException(MessageConstant.Product.ProductNotFound);
         using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
             try
@@ -131,7 +133,6 @@ public class OrderService: BaseService<OrderService>, IOrderService
                 foreach (var orderItem in orderItems)
                 {
                     var product = await _productRepository.GetProductByIdAsync(orderItem.ProductId);
-                    if (product == null) throw new BadHttpRequestException(MessageConstant.Product.ProductNotFound);
                     foreach (var labProduct in product.LabProducts)
                     {
                         var existedLabMember = await _labMemberRepository.GetLabMemberByLabIdAndMemberId(labProduct.LabId, order.MemberId);

@@ -14,10 +14,12 @@ public class ProductController : BaseController<ProductController>
 {
     private readonly IProductService _productService;
     private readonly ILabService _labService;
-    public ProductController(ILogger<ProductController> logger, IProductService productService, ILabService labService) : base(logger)
+    private readonly ICartService _cartService;
+    public ProductController(ILogger<ProductController> logger, IProductService productService, ILabService labService, ICartService cartService) : base(logger)
     {
         _productService = productService;
         _labService = labService;
+        _cartService = cartService;
     }
     [HttpGet(ApiEndPointConstant.Product.ProductEndpoint)]
     [ProducesResponseType(typeof(IPaginate<GetProductWithCatogoriesResponse>), statusCode: StatusCodes.Status200OK)]
@@ -95,6 +97,19 @@ public class ProductController : BaseController<ProductController>
     public async Task<IActionResult> GetLabsByProductId(Guid id)
     {
         var response = await _labService.GetLabsByProductIdAsync(id);
+        return Ok(response);
+    }
+    [HttpDelete(ApiEndPointConstant.Product.CartByProductId)]
+    [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> RemoveFromCartAsync(Guid id)
+    {
+        var response = await _cartService.RemoveFromCartAsync(id);
+        if (response == null)
+        {
+            _logger.LogError($"Remove from cart failed with {id}");
+            return Problem($"{MessageConstant.Cart.RemoveFromCartFail}: {id}");
+        }
+        _logger.LogInformation($"Remove from cart successful with {id}");
         return Ok(response);
     }
 }

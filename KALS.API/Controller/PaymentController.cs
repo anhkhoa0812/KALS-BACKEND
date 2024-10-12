@@ -10,9 +10,11 @@ namespace KALS.API.Controller;
 public class PaymentController: BaseController<PaymentController>
 {
     private readonly IPaymentService _paymentService;
-    public PaymentController(ILogger<PaymentController> logger, IPaymentService paymentService) : base(logger)
+    private readonly ICartService _cartService;
+    public PaymentController(ILogger<PaymentController> logger, IPaymentService paymentService, ICartService cartService) : base(logger)
     {
         _paymentService = paymentService;
+        _cartService = cartService;
     }
     [HttpPost(ApiEndPointConstant.Payment.PaymentCheckOut)]
     [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status200OK)]
@@ -40,6 +42,8 @@ public class PaymentController: BaseController<PaymentController>
             return Problem($"{MessageConstant.Payment.UpdateStatusPaymentAndOrderFail}: {request.OrderCode}");
         }
         _logger.LogInformation($"Update payment status successful with {request.OrderCode}");
+        await _cartService.ClearCartAsync();
+        _logger.LogInformation($"Clear cart after order successful");
         return Ok(response);
     }
     

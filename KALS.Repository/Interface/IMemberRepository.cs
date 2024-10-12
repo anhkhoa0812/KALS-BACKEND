@@ -10,4 +10,6 @@ public interface IMemberRepository: IGenericRepository<Member>
     
     Task<IPaginate<Member>> GetMembersPagingAsync(int page, int size, IFilter<Member> filter, string? sortBy,
         bool isAsc);
+    
+    Task<Member> GetMemberById(Guid id);
 }

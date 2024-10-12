@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using KALS.Domain.Common;
 
@@ -11,4 +12,6 @@ public class LabMember
     public Guid MemberId { get; set; }
     [ForeignKey(nameof(MemberId))]
     public Member Member { get; set; }
+    [DefaultValue(3)]
+    public int NumberOfRequest { get; set; }
 }

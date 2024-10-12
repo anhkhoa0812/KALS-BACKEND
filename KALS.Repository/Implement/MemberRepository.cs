@@ -51,4 +51,15 @@ public class MemberRepository: GenericRepository<Member>, IMemberRepository
         );
         return members;
     }
+
+    public async Task<Member> GetMemberById(Guid id)
+    {
+        var member = await SingleOrDefaultAsync(
+            predicate: m => m.Id == id,
+            include: m => m.Include(m => m.User)
+                .Include(m => m.LabMembers)
+                .ThenInclude(lm => lm.Lab)
+        );
+        return member;
+    }
 }

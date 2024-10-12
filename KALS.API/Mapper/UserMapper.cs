@@ -8,6 +8,7 @@ public class UserMapper: Profile
 {
     public UserMapper()
     {
+        CreateMap<CreateStaffRequest, User>();
         CreateMap<RegisterRequest, User>();
         CreateMap<User, LoginResponse>();
         CreateMap<User, UserResponse>();

@@ -4,6 +4,7 @@ using KALS.Domain.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KALS.DataAccess.Persistent.Migrations
 {
     [DbContext(typeof(KitAndLabDbContext))]
-    partial class KitAndLabDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241012054136_6")]
+    partial class _6
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -165,10 +168,6 @@ namespace KALS.DataAccess.Persistent.Migrations
                         .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -472,7 +471,7 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("795d8911-fc8b-4e8e-ae5b-4cdea3312169"),
+                            Id = new Guid("7aab6022-8250-44e9-8a2d-9d5d81e9f538"),
                             FullName = "Admin",
                             Password = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=",
                             PhoneNumber = "0123456789",
@@ -631,7 +630,7 @@ namespace KALS.DataAccess.Persistent.Migrations
             modelBuilder.Entity("KALS.Domain.Entities.SupportMessage", b =>
                 {
                     b.HasOne("KALS.Domain.Entities.SupportRequest", "SupportRequest")
-                        .WithMany("SupportMessages")
+                        .WithMany()
                         .HasForeignKey("SupportRequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -707,11 +706,6 @@ namespace KALS.DataAccess.Persistent.Migrations
                     b.Navigation("ProductCategories");
 
                     b.Navigation("ProductImages");
-                });
-
-            modelBuilder.Entity("KALS.Domain.Entities.SupportRequest", b =>
-                {
-                    b.Navigation("SupportMessages");
                 });
 #pragma warning restore 612, 618
         }

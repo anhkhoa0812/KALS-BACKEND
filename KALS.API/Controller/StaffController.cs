@@ -39,4 +39,18 @@ public class StaffController: BaseController<StaffController>
         _logger.LogInformation($"Create new staff successful with {request.Username}");
         return Ok(staff);
     }
+    [HttpPost(ApiEndPointConstant.Staff.StaffEndpoint)]
+    [ProducesResponseType(typeof(StaffResponse), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), statusCode: StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CreateStaffAsync([FromBody] CreateStaffRequest request)
+    {
+        var staff = await _userService.CreateStaffAsync(request);
+        if (staff == null)
+        {
+            _logger.LogError($"Create new staff failed with {request.Username}");
+            return Problem($"{MessageConstant.User.CreateStaffFail}: {request.Username}");
+        }
+        _logger.LogInformation($"Create new staff successful with {request.Username}");
+        return Ok(staff);
+    }
 }

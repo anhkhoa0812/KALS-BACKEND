@@ -26,27 +26,23 @@ try
     builder.Services.AddConfigSwagger();
     builder.Services.AddSwaggerGen();
     builder.Services.AddHttpContextAccessor();
+    
     var app = builder.Build();
 
     app.UseSwagger();
     app.UseSwaggerUI();
-
-
-    app.UseHttpsRedirection();
     app.UseCors(CorConstant.PolicyName);
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();
     app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.UseSwagger(options => { options.SerializeAsV2 = true; });
-
+    app.UseHttpsRedirection();
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
         app.UseSwaggerUI();
     }
-
-    app.UseHttpsRedirection();
 
     logger.Info("Starting application...");
     app.Run();

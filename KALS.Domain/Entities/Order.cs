@@ -9,6 +9,7 @@ public class Order: BaseEntity
 {
     public decimal Total { get; set; }
     public OrderStatus Status { get; set; }
+    public string Code { get; set; }
     [MaxLength(1000)]
     public string Address { get; set; }
     public DateTime CreatedAt { get; set; }

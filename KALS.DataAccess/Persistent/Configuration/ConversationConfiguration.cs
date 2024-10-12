@@ -65,4 +65,14 @@ public class StaffConfiguration: IEntityTypeConfiguration<Staff>
             );
     }
 }
-
+public class SupportMessageConfiguration: IEntityTypeConfiguration<SupportMessage>
+{
+    public void Configure(EntityTypeBuilder<SupportMessage> builder)
+    {
+        builder.Property(sm => sm.Type)
+            .HasConversion(
+                smt => smt.ToString(),
+                smt => (SupportMessageType)Enum.Parse(typeof(SupportMessageType), smt)
+            );
+    }
+}

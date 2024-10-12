@@ -151,21 +151,37 @@ public class ProductService: BaseService<ProductService>, IProductService
 
     public async Task<GetProductResponse> CreateProductAsync(CreateProductRequest request)
     {
+        var product = _mapper.Map<Product>(request);
+        product.Id = Guid.NewGuid();
+        product.CreatedAt = TimeUtil.GetCurrentSEATime();
+        product.ModifiedAt = TimeUtil.GetCurrentSEATime();
+        if (request.ChildProductIds != null)
+        {
+            foreach (var childProductId in request.ChildProductIds)
+            {
+                var requestedChildProduct = await _productRepository.GetProductByIdAsync(childProductId);
+                if (requestedChildProduct == null)
+                    throw new BadHttpRequestException(MessageConstant.Product.ChildProductNotFound);
+            } 
+        }
+
+        if (request.CategoryIds != null)
+        {
+            foreach (var categoryId in request.CategoryIds)
+            {
+                var category = await _categoryRepository.GetCategoryByIdAsync(categoryId);
+                if (category == null)
+                    throw new BadHttpRequestException(MessageConstant.Category.CategoryNotFound);
+            }
+        }
         using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
             try
             {
-                var product = _mapper.Map<Product>(request);
-                product.Id = Guid.NewGuid();
-                product.CreatedAt = TimeUtil.GetCurrentSEATime();
-                product.ModifiedAt = TimeUtil.GetCurrentSEATime();
                 if (request.ChildProductIds != null)
                 {
                     foreach (var childProductId in request.ChildProductIds)
                     {
-                        var requestedChildProduct = await _productRepository.GetProductByIdAsync(childProductId);
-                        if (requestedChildProduct == null)
-                            throw new BadHttpRequestException(MessageConstant.Product.ChildProductNotFound);
                         await _productRelationshipRepository.InsertAsync(new ProductRelationship()
                         {
                             ParentProductId = product.Id,
@@ -178,9 +194,6 @@ public class ProductService: BaseService<ProductService>, IProductService
                 {
                     foreach (var categoryId in request.CategoryIds)
                     {
-                        var category = await _categoryRepository.GetCategoryByIdAsync(categoryId);
-                        if (category == null)
-                            throw new BadHttpRequestException(MessageConstant.Category.CategoryNotFound);
                         await _productCategoryRepository.InsertAsync(
                             new ProductCategory()
                             {

@@ -10,4 +10,5 @@ public interface IUserRepository: IGenericRepository<User>
     
     Task<ICollection<User>> GetAllUsers();
     Task<User> GetUserByPhoneNumber(string phoneNumber);
+    
 }

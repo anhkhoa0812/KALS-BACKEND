@@ -1,12 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using KALS.Domain.Common;
+using KALS.Domain.Enums;
 
 namespace KALS.Domain.Entities;
 
 public class SupportMessage: BaseEntity
 {
-    public string Type { get; set; }
+    public SupportMessageType Type { get; set; }
     [MaxLength(Int32.MaxValue)]
     public string Content { get; set; }
     public DateTime CreatedAt { get; set; }

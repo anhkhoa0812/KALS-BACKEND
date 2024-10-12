@@ -90,9 +90,12 @@ public class UserService : BaseService<UserService>, IUserService
                 var isSuccess = await _memberRepository.SaveChangesAsync();
                 transaction.Complete();
                 LoginResponse response = null;
-                if (isSuccess) response = _mapper.Map<LoginResponse>(user);
-                response.Token = JwtUtil.GenerateJwtToken(user, new Tuple<string, Guid>("userId", user.Id), _configuration);
-                response.RefreshToken = JwtUtil.GenerateRefreshToken();
+                if (isSuccess)
+                {
+                    response = _mapper.Map<LoginResponse>(user);
+                    response.Token = JwtUtil.GenerateJwtToken(user, new Tuple<string, Guid>("userId", user.Id), _configuration);
+                    response.RefreshToken = JwtUtil.GenerateRefreshToken();
+                }
                 return response;
             }
             catch (Exception e)
@@ -302,5 +305,30 @@ public class UserService : BaseService<UserService>, IUserService
         UserResponse response = null;
         if (isSuccess) response = _mapper.Map<UserResponse>(staff.User);
         return response;
+    }
+
+    public async Task<StaffResponse> CreateStaffAsync(CreateStaffRequest request)
+    {
+        var userList = await _userRepository.GetAllUsers();
+        if (userList.Any(u => u.Username == request.Username)) throw new BadHttpRequestException(MessageConstant.User.UserNameExisted);
+        if (userList.Any(u => u.PhoneNumber == request.PhoneNumber)) throw new BadHttpRequestException(MessageConstant.User.PhoneNumberExisted);
+        var user = _mapper.Map<User>(request);
+        user.Password = PasswordUtil.HashPassword(request.Password);
+        user.Role = RoleEnum.Staff;
+        var staff = new Staff()
+        {
+            Id = Guid.NewGuid(),
+            Type = request.Type,
+            UserId = user.Id,
+            User = user
+        };
+        await _staffRepository.InsertAsync(staff);
+        StaffResponse response = null;
+        var isSuccess = await _staffRepository.SaveChangesAsync();
+        if(isSuccess) return _mapper.Map<StaffResponse>(staff);
+        return response;
+        
+        
+        
     }
 }

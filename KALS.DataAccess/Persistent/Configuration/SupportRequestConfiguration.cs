@@ -29,5 +29,11 @@ public class SupportRequestConfiguration: IEntityTypeConfiguration<SupportReques
                 v => v.ToString(),
                 v => (SupportRequestStatus)Enum.Parse(typeof(SupportRequestStatus), v)
             );
+        builder
+            .HasOne(sr => sr.LabMember)
+            .WithMany()
+            .HasForeignKey(sr => new { sr.LabId, sr.MemberId })
+            .OnDelete(DeleteBehavior.Restrict);
+        
     }
 }

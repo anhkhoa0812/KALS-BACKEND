@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using System.Transactions;
 using AutoMapper;
 using KALS.API.Constant;
@@ -44,10 +46,7 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
             _configuration["PAYOS:PAYOS_CHECKSUM_KEY"] ?? throw new Exception("Cannot find environment"));
         
         var userId = GetUserIdFromJwt();
-        // var member = await _unitOfWork.GetRepository<Member>().SingleOrDefaultAsync(
-        //     predicate: m => m.UserId == userId,
-        //     include: m => m.Include(m => m.User)
-        // );
+        
         var member = await _memberRepository.GetMemberByUserId(userId);
         if (member == null) throw new UnauthorizedAccessException(MessageConstant.User.UserNotFound);
         // if( member.Ward == null || member.Province == null || member.District == null || member.Address == null) 
@@ -55,16 +54,17 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
         var redis = ConnectionMultiplexer.Connect(_configuration.GetConnectionString("Redis"));
         var db = redis.GetDatabase();
         var key = "Cart:" + userId;
-        
         var cartData = await db.StringGetAsync(key);
 
         if (cartData.IsNullOrEmpty) throw new BadHttpRequestException(MessageConstant.Cart.CartNotFound);
         
         var cart = JsonConvert.DeserializeObject<List<CartModelResponse>>(cartData);
         
+        int orderCode = int.Parse(DateTimeOffset.Now.ToString("ffffff"));
         var order = new Order()
         {
             Id = Guid.NewGuid(),
+            Code = "ORDER-" + orderCode,
             CreatedAt = TimeUtil.GetCurrentSEATime(),
             ModifiedAt = TimeUtil.GetCurrentSEATime(),
             Status = OrderStatus.Pending,
@@ -74,7 +74,6 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
         var orderItems = new List<OrderItem>();
         decimal orderTotal = 0;
         List<ItemData> items = new List<ItemData>();
-        int orderCode = int.Parse(DateTimeOffset.Now.ToString("ffffff"));
         
         foreach (var cartModel in cart)
         {
@@ -121,32 +120,30 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
                 // await _unitOfWork.GetRepository<Payment>().InsertAsync(payment);
                 await _paymentRepository.InsertAsync(payment);
                 
-        foreach (var orderItem in orderItems)
-        {
-            orderItem.OrderId = order.Id;
-        }
-        await _orderItemRepository.InsertRangeAsync(orderItems);
-        
-        var isSuccess = await _orderRepository.SaveChangesAsync();
-        transaction.Complete();
-        if (!isSuccess) throw new BadHttpRequestException(MessageConstant.Order.CreateOrderFail);
-        
-        PaymentData paymentData = new PaymentData(
-            orderCode, 
-            (int)order.Total, 
-            "Thanh toán đơn hàng", 
-            items, 
-            "https://localhost:3002/cancel", 
-            "https://localhost:3002/success",
-            buyerName: member.User.FullName,
-            buyerPhone: member.User.PhoneNumber,
-            expiredAt: ((DateTimeOffset) TimeUtil.GetCurrentSEATime().AddMinutes(10)).ToUnixTimeSeconds()
-        );
-        
-        // Call the external payment service to create a payment link
-        CreatePaymentResult createPayment = await _payOs.createPaymentLink(paymentData);
-        
-        return createPayment.checkoutUrl; 
+                foreach (var orderItem in orderItems) 
+                { 
+                    orderItem.OrderId = order.Id; 
+                } 
+                await _orderItemRepository.InsertRangeAsync(orderItems);
+                
+                var isSuccess = await _orderRepository.SaveChangesAsync(); 
+                transaction.Complete(); 
+                if (!isSuccess) throw new BadHttpRequestException(MessageConstant.Order.CreateOrderFail);
+                PaymentData paymentData = new PaymentData(
+                    orderCode, 
+                    (int)order.Total, 
+                    "Thanh toán đơn hàng", 
+                    items, 
+                    "https://stemlabs.store/cancel", 
+                    "https://stemlabs.store/success",
+                    buyerName: member.User.FullName, 
+                    buyerPhone: member.User.PhoneNumber,
+                    expiredAt: ((DateTimeOffset) TimeUtil.GetCurrentSEATime().AddMinutes(10)).ToUnixTimeSeconds()
+                    );
+                // Call the external payment service to create a payment link
+                CreatePaymentResult createPayment = await _payOs.createPaymentLink(paymentData);
+                
+                return createPayment.checkoutUrl;
             }
             catch (Exception e)
             {
@@ -154,17 +151,22 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
             }
         }
     }
-
+    // private string ComputeSignature(int orderCode, decimal amount, string description, string cancelUrl, string returnUrl, string secretKey)
+    // {
+    //     // Recompute the signature based on the data and secret key (checksum key)
+    //     string rawData = $"amount={amount}&cancelUrl={cancelUrl}&description={description}&orderCode={orderCode}&returnUrl={returnUrl}{secretKey}";
+    //
+    //     using (var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secretKey)))
+    //     {
+    //         byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+    //         return BitConverter.ToString(hash).Replace("-", "").ToLower();
+    //     }
+    // }
     public async Task<PaymentWithOrderResponse> HandlePayment(UpdatePaymentOrderStatusRequest request)
     {
         if(request.OrderCode == 0) throw new BadHttpRequestException(MessageConstant.Payment.OrderCodeNotNull);
         
-        // var payment = await _unitOfWork.GetRepository<Payment>().SingleOrDefaultAsync(
-        //     predicate: p => p.OrderCode == request.OrderCode,
-        //     include: p => p.Include(p => p.Order)
-        // );
         var payment = await _paymentRepository.GetPaymentByOrderCode(request.OrderCode);
-        
         if (payment == null) throw new BadHttpRequestException(MessageConstant.Payment.PaymentNotFound);
         
         if (payment.Status == PaymentStatus.Paid)
@@ -194,7 +196,6 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
                         payment.PaymentDateTime = DateTime.Parse(paymentLinkInformation.transactions[0].transactionDateTime);
                         payment.Order.Status = OrderStatus.Processing;
                         payment.Order.ModifiedAt = TimeUtil.GetCurrentSEATime();
-                
                         _paymentRepository.UpdateAsync(payment);
                 
                         var orderItems = await _orderItemRepository.GetOrderItemByOrderIdAsync(payment.Order.Id);
@@ -202,7 +203,6 @@ public class PaymentService: BaseService<PaymentService>, IPaymentService
                         {
                             orderItem.Product.Quantity -= orderItem.Quantity;
                         }
-                        // _unitOfWork.GetRepository<OrderItem>().UpdateRangeAsync(orderItems);
                         _orderItemRepository.UpdateRangeAsync(orderItems);
                         break;
                     case PayOsStatus.EXPIRED:

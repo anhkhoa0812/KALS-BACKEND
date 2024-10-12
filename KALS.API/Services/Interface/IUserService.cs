@@ -25,6 +25,7 @@ public interface IUserService
     Task<UserResponse> UpdateMemberAsync(UpdateMemberRequest request);
     Task<UserResponse> UpdateStaffAsync(Guid id, UpdateStaffRequest request);
     
+    Task<StaffResponse> CreateStaffAsync(CreateStaffRequest request);
     
     
 }
